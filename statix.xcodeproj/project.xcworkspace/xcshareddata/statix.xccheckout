@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>52F937E3-7733-4A59-ADA6-20E5D52C900F</string>
+	<key>IDESourceControlProjectName</key>
+	<string>statix</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>FE29BEAA-6546-4165-9E97-6605FA728BAA</key>
+		<string>ssh://github.com/dincho/statix.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>statix.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>FE29BEAA-6546-4165-9E97-6605FA728BAA</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>ssh://github.com/dincho/statix.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>FE29BEAA-6546-4165-9E97-6605FA728BAA</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>FE29BEAA-6546-4165-9E97-6605FA728BAA</string>
+			<key>IDESourceControlWCCName</key>
+			<string>statix</string>
+		</dict>
+	</array>
+</dict>
+</plist>

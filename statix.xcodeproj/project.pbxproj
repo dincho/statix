@@ -7,24 +7,54 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5B4B90EB190ACB120015AF8F /* stx_server.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B4B90EA190ACB120015AF8F /* stx_server.c */; };
+		5B4B90EC190ADA1A0015AF8F /* index.html in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5BB8A4EC18D500FE00682D93 /* index.html */; };
+		5B4B90ED190ADA1A0015AF8F /* test.html in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5BB5E1F51909B2840024C6ED /* test.html */; };
+		5B83410C18D7821800BAF1D9 /* stx_request.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B83410B18D7821800BAF1D9 /* stx_request.c */; };
+		5B83411218D78BAC00BAF1D9 /* stx_listen.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B83411118D78BAC00BAF1D9 /* stx_listen.c */; };
+		5B83411418D78D1100BAF1D9 /* stx_dispatch.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B83411318D78D1100BAF1D9 /* stx_dispatch.c */; };
+		5B83411718D7A59400BAF1D9 /* stx_accept.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B83411618D7A59400BAF1D9 /* stx_accept.c */; };
+		5B83411918D7A95100BAF1D9 /* stx_log.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B83411818D7A95100BAF1D9 /* stx_log.c */; };
+		5B97835F19059DED003893FC /* stx_read.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B97835E19059DED003893FC /* stx_read.c */; };
 		5B9D3B2D18C132BA00A88225 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B9D3B2C18C132BA00A88225 /* main.c */; };
+		5BB5E1F41909A0230024C6ED /* stx_write.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BB5E1F31909A0230024C6ED /* stx_write.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		5B9D3B2718C132BA00A88225 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 16;
 			files = (
+				5B4B90EC190ADA1A0015AF8F /* index.html in CopyFiles */,
+				5B4B90ED190ADA1A0015AF8F /* test.html in CopyFiles */,
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5B3BCAD618CCEC2F00286ADB /* stx_request.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_request.h; sourceTree = "<group>"; };
+		5B4B90E9190ACB080015AF8F /* stx_server.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_server.h; sourceTree = "<group>"; };
+		5B4B90EA190ACB120015AF8F /* stx_server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_server.c; sourceTree = "<group>"; };
+		5B83410B18D7821800BAF1D9 /* stx_request.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_request.c; sourceTree = "<group>"; };
+		5B83410D18D785B600BAF1D9 /* stx_dispatch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_dispatch.h; sourceTree = "<group>"; };
+		5B83411018D78BA100BAF1D9 /* stx_listen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_listen.h; sourceTree = "<group>"; };
+		5B83411118D78BAC00BAF1D9 /* stx_listen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_listen.c; sourceTree = "<group>"; };
+		5B83411318D78D1100BAF1D9 /* stx_dispatch.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_dispatch.c; sourceTree = "<group>"; };
+		5B83411518D7A58700BAF1D9 /* stx_accept.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = stx_accept.h; path = ../stx_accept.h; sourceTree = "<group>"; };
+		5B83411618D7A59400BAF1D9 /* stx_accept.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_accept.c; sourceTree = "<group>"; };
+		5B83411818D7A95100BAF1D9 /* stx_log.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_log.c; sourceTree = "<group>"; };
+		5B83411A18D7A96100BAF1D9 /* stx_log.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_log.h; sourceTree = "<group>"; };
+		5B97835E19059DED003893FC /* stx_read.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_read.c; sourceTree = "<group>"; };
+		5B97836019059DF7003893FC /* stx_read.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_read.h; sourceTree = "<group>"; };
 		5B9D3B2918C132BA00A88225 /* statix */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = statix; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B9D3B2C18C132BA00A88225 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		5BB5E1F21909A01A0024C6ED /* stx_write.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_write.h; sourceTree = "<group>"; };
+		5BB5E1F31909A0230024C6ED /* stx_write.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_write.c; sourceTree = "<group>"; };
+		5BB5E1F51909B2840024C6ED /* test.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = test.html; sourceTree = "<group>"; };
+		5BB8A4EC18D500FE00682D93 /* index.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +88,24 @@
 			isa = PBXGroup;
 			children = (
 				5B9D3B2C18C132BA00A88225 /* main.c */,
+				5B4B90E9190ACB080015AF8F /* stx_server.h */,
+				5B4B90EA190ACB120015AF8F /* stx_server.c */,
+				5B83411018D78BA100BAF1D9 /* stx_listen.h */,
+				5B83411118D78BAC00BAF1D9 /* stx_listen.c */,
+				5B83411518D7A58700BAF1D9 /* stx_accept.h */,
+				5B83411618D7A59400BAF1D9 /* stx_accept.c */,
+				5B97836019059DF7003893FC /* stx_read.h */,
+				5B97835E19059DED003893FC /* stx_read.c */,
+				5B3BCAD618CCEC2F00286ADB /* stx_request.h */,
+				5B83410B18D7821800BAF1D9 /* stx_request.c */,
+				5B83410D18D785B600BAF1D9 /* stx_dispatch.h */,
+				5B83411318D78D1100BAF1D9 /* stx_dispatch.c */,
+				5BB5E1F21909A01A0024C6ED /* stx_write.h */,
+				5BB5E1F31909A0230024C6ED /* stx_write.c */,
+				5B83411A18D7A96100BAF1D9 /* stx_log.h */,
+				5B83411818D7A95100BAF1D9 /* stx_log.c */,
+				5BB8A4EC18D500FE00682D93 /* index.html */,
+				5BB5E1F51909B2840024C6ED /* test.html */,
 			);
 			path = statix;
 			sourceTree = "<group>";
@@ -114,6 +162,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B9D3B2D18C132BA00A88225 /* main.c in Sources */,
+				5B83410C18D7821800BAF1D9 /* stx_request.c in Sources */,
+				5B83411418D78D1100BAF1D9 /* stx_dispatch.c in Sources */,
+				5B83411218D78BAC00BAF1D9 /* stx_listen.c in Sources */,
+				5B83411918D7A95100BAF1D9 /* stx_log.c in Sources */,
+				5BB5E1F41909A0230024C6ED /* stx_write.c in Sources */,
+				5B4B90EB190ACB120015AF8F /* stx_server.c in Sources */,
+				5B97835F19059DED003893FC /* stx_read.c in Sources */,
+				5B83411718D7A59400BAF1D9 /* stx_accept.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -221,6 +277,7 @@
 				5B9D3B3418C132BA00A88225 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

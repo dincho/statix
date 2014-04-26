@@ -6,20 +6,20 @@
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
       <BuildActionEntries>
-	 <BuildActionEntry
-	    buildForTesting = "YES"
-	    buildForRunning = "YES"
-	    buildForProfiling = "YES"
-	    buildForArchiving = "YES"
-	    buildForAnalyzing = "YES">
-	    <BuildableReference
-	       BuildableIdentifier = "primary"
-	       BlueprintIdentifier = "5B9D3B2818C132BA00A88225"
-	       BuildableName = "statix"
-	       BlueprintName = "statix"
-	       ReferencedContainer = "container:statix.xcodeproj">
-	    </BuildableReference>
-	 </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "5B9D3B2818C132BA00A88225"
+               BuildableName = "statix"
+               BlueprintName = "statix"
+               ReferencedContainer = "container:statix.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -30,13 +30,13 @@
       <Testables>
       </Testables>
       <MacroExpansion>
-	 <BuildableReference
-	    BuildableIdentifier = "primary"
-	    BlueprintIdentifier = "5B9D3B2818C132BA00A88225"
-	    BuildableName = "statix"
-	    BlueprintName = "statix"
-	    ReferencedContainer = "container:statix.xcodeproj">
-	 </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "5B9D3B2818C132BA00A88225"
+            BuildableName = "statix"
+            BlueprintName = "statix"
+            ReferencedContainer = "container:statix.xcodeproj">
+         </BuildableReference>
       </MacroExpansion>
    </TestAction>
    <LaunchAction
@@ -49,13 +49,13 @@
       debugDocumentVersioning = "YES"
       allowLocationSimulation = "YES">
       <BuildableProductRunnable>
-	 <BuildableReference
-	    BuildableIdentifier = "primary"
-	    BlueprintIdentifier = "5B9D3B2818C132BA00A88225"
-	    BuildableName = "statix"
-	    BlueprintName = "statix"
-	    ReferencedContainer = "container:statix.xcodeproj">
-	 </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "5B9D3B2818C132BA00A88225"
+            BuildableName = "statix"
+            BlueprintName = "statix"
+            ReferencedContainer = "container:statix.xcodeproj">
+         </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
       </AdditionalOptions>
@@ -67,13 +67,13 @@
       buildConfiguration = "Release"
       debugDocumentVersioning = "YES">
       <BuildableProductRunnable>
-	 <BuildableReference
-	    BuildableIdentifier = "primary"
-	    BlueprintIdentifier = "5B9D3B2818C132BA00A88225"
-	    BuildableName = "statix"
-	    BlueprintName = "statix"
-	    ReferencedContainer = "container:statix.xcodeproj">
-	 </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "5B9D3B2818C132BA00A88225"
+            BuildableName = "statix"
+            BlueprintName = "statix"
+            ReferencedContainer = "container:statix.xcodeproj">
+         </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
