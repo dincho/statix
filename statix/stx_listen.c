@@ -35,7 +35,7 @@ int stx_listen(stx_server_t *server)
         return -1;
     }
     
-    if (listen(fd, 100) < 0) {
+    if (listen(fd, 1000) < 0) {
         perror("listen");
         return -1;
     }
