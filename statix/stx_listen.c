@@ -9,10 +9,12 @@
 #include <netinet/in.h> /* For sockaddr_in */
 #include <sys/socket.h> /* For socket functions */
 #include <stdio.h> //perror
+#include <sys/fcntl.h>
 
 #include "stx_listen.h"
+#include "stx_event_queue.h"
 
-int stx_listen(stx_server_t *server)
+int stx_listen(int queue, stx_server_t *server)
 {
     int fd;
     struct sockaddr_in sin;
@@ -24,6 +26,11 @@ int stx_listen(stx_server_t *server)
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (-1 == fd) {
         perror("socket");
+        return -1;
+    }
+    
+    if (-1 == fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK)) {
+        perror("fcntl");
         return -1;
     }
     
@@ -42,8 +49,7 @@ int stx_listen(stx_server_t *server)
     
     server->sock = fd;
     
-    //@todo create "accept" event
     stx_log(server->logger, STX_LOG_INFO, "Listening for new connections....");
     
-    return 0;
+    return stx_event(queue, fd, STX_EV_ACCEPT, server);
 }

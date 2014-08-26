@@ -11,6 +11,6 @@
 
 #include "stx_server.h"
 
-int stx_listen(stx_server_t *);
+int stx_listen(int, stx_server_t *);
 
 #endif

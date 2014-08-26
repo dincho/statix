@@ -10,13 +10,14 @@
 #include <stdio.h> //perror
 #include <errno.h>
 #include <unistd.h> //close
+
 #include "stx_read.h"
 #include "stx_dispatch.h"
-#include "stx_write.h"
 #include "stx_log.h"
+#include "stx_event_queue.h"
 
 
-void stx_read(stx_request_t *req)
+void stx_read(int queue, stx_request_t *req)
 {
     ssize_t result;
     
@@ -40,6 +41,8 @@ void stx_read(stx_request_t *req)
     if (result < 0) {
         if (errno == EAGAIN) {
             stx_log(req->server->logger, STX_LOG_DEBUG, "EAGAIN while reading");
+            
+            stx_event(queue, req->conn, STX_EV_READ, req);
             return;
         }
 
@@ -52,8 +55,6 @@ void stx_read(stx_request_t *req)
     
     
     //process request
-    //create write event
     stx_dispatch(req);
-    
-    stx_write(req);
+    stx_event(queue, req->conn, STX_EV_WRITE, req);
 }

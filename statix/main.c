@@ -12,13 +12,22 @@
 #include "stx_server.h"
 #include "stx_listen.h"
 #include "stx_accept.h"
+#include "stx_read.h"
+#include "stx_write.h"
 
 #include <string.h>
 #include <unistd.h> //getcwd
 #include <errno.h>
 
+#include "stx_event_queue.h"
+
 int main(int argc, const char * argv[])
 {
+    int queue, nev;
+    stx_event_t chlist[10];
+    stx_event_t ev;
+    stx_event_data_t *ev_data;
+
     stx_log_t logger;
     logger.level = STX_LOG_DEBUG;
     logger.fp = stderr;
@@ -33,14 +42,50 @@ int main(int argc, const char * argv[])
         perror("getcwd");
         return EXIT_FAILURE;
     }
-    
-    if (stx_listen(&server)) {
+
+    if ((queue = stx_queue_create()) == -1) {
+        perror("kqueue");
+        return EXIT_FAILURE;
+    }
+
+    if (stx_listen(queue, &server)) {
         return EXIT_FAILURE;
     }
     
-    while (1) {
-        stx_accept(&server);
+
+    for (;;) {
+        nev = stx_event_wait(queue, (stx_event_t *)&chlist, 10, NULL);
+        
+        if (nev == -1) {
+            perror("stx_event_wait()");
+            return EXIT_FAILURE;
+        }
+        
+        for (int i = 0; i < nev; i++) {
+            ev = chlist[i];
+            ev_data = (stx_event_data_t *) ev.udata;
+            
+            switch (ev_data->event_type) {
+                case STX_EV_ACCEPT:
+                    stx_accept(queue, ev_data->data); //server
+                    break;
+                case STX_EV_READ:
+                    stx_read(queue, ev_data->data); //request
+                    break;
+                case STX_EV_WRITE:
+                    stx_write(ev_data->data); //request
+                    break;
+                case STX_EV_CLOSE:
+                    
+                    break;
+            }
+            
+            if (ev.flags & STX_EVCTL_ONESHOT) {
+                free(ev_data);
+            }
+        }
     }
-    
+
+    stx_queue_close(queue);
     return EXIT_SUCCESS;
 }

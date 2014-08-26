@@ -11,6 +11,6 @@
 
 #include "stx_server.h"
 
-void stx_accept(stx_server_t *);
+void stx_accept(int, stx_server_t *);
 
 #endif
