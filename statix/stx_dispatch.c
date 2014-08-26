@@ -50,6 +50,8 @@ void stx_dispatch(stx_request_t *r)
             r->status = STX_STATUS_ERROR;
             perror("open");
         }
+        
+        free(filename);
 
         return;
     }
@@ -57,8 +59,12 @@ void stx_dispatch(stx_request_t *r)
     if (fstat(fd, &sb) == -1) {
         r->status = STX_STATUS_ERROR;
         perror("fstat");
+        free(filename);
+
         return;
     }
+    
+    free(filename);
     
     //sb.mtime
     //content type
