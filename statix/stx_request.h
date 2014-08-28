@@ -78,6 +78,18 @@ static const char * const response_templates[] = {
         " <h1>Method Not Implemented</h1>\n"
         " <p>This method is not implemented by this server.</p>\n"
         " </body>\n"
+        "</html>\n",
+    [STX_STATUS_URI_TOO_LONG] =
+        "HTTP/1.0 414 Request-URI Too Long\r\n"
+        "Server: Statix/0.1.0\r\n"
+        "Content-Type: text/html; charset=utf-8\r\n"
+        "Content-Length: 63\r\n"
+        "Connection: close\r\n"
+        "\r\n"
+        "<html>\n"
+        " <body>\n"
+        " <h1>Request-URI Too Long</h1>\n"
+        " </body>\n"
         "</html>\n"
 };
 
