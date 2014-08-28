@@ -31,25 +31,23 @@ void stx_read(int queue, stx_request_t *req)
     
     //connection closed by peer
     if (result == 0) {
-        //close connection & delete event
         stx_log(req->server->logger, STX_LOG_ERR, "Connection closed by peer");
-        close(req->conn);
-        free(req);
+        stx_close_request(req);
+
         return;
     }
     
     if (result < 0) {
         if (errno == EAGAIN) {
             stx_log(req->server->logger, STX_LOG_DEBUG, "EAGAIN while reading");
-            
             stx_event(queue, req->conn, STX_EV_READ, req);
+
             return;
         }
 
         perror("recv");
-        //close connection & delete event
-        close(req->conn);
-        free(req);
+        stx_close_request(req);
+
         return;
     }
     

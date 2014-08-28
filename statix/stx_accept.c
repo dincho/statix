@@ -34,11 +34,14 @@ void stx_accept(int queue, stx_server_t *server)
     conn = accept(server->sock, (struct sockaddr*)&ss, &slen);
     if (conn < 0) {
         perror("accept");
+
         return;
     }
     
     if (-1 == fcntl(conn, F_SETFL, fcntl(conn, F_GETFL, 0) | O_NONBLOCK)) {
         perror("fcntl");
+        close(conn);
+
         return;
     }
     
@@ -55,6 +58,8 @@ void stx_accept(int queue, stx_server_t *server)
     if (NULL == request) {
         stx_log(server->logger, STX_LOG_ERR,
                 "Error while initializing request");
+        close(conn);
+
         return;
     }
 

@@ -28,12 +28,11 @@ void stx_write(stx_request_t *req)
         tx = send(req->conn, response, strlen(response), 0);
         if(-1 == tx) {
             perror("send");
-
         }
         
         stx_log(req->server->logger, STX_LOG_DEBUG, "TX: %d bytes", tx);
-        close(req->conn);
-        free(req);
+        stx_close_request(req);
+
         return;
     }
     
@@ -50,14 +49,12 @@ void stx_write(stx_request_t *req)
         if (sendfile(req->fd, req->conn, 0, &len, &headers, 0)) {
             //handle errors
             perror("sendfile");
-            return;
         }
         
         stx_log(req->server->logger, STX_LOG_DEBUG, "Sendfile TX: %d bytes", len);
-        close(req->fd);
     }
     
-    close(req->conn);
-    free(req);
+    stx_close_request(req);
+
     return;
 }

@@ -7,6 +7,7 @@
 //
 
 #include <stdio.h>
+#include <unistd.h>
 #include "stx_request.h"
 #include "stx_log.h"
 
@@ -164,4 +165,14 @@ int stx_parse_request_line(stx_request_t *r)
     }
     
     return -1;
+}
+
+void stx_close_request(stx_request_t *req)
+{
+    if (req->fd > 0) {
+        close(req->fd);
+    }
+
+    close(req->conn);
+    free(req);
 }
