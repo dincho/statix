@@ -42,7 +42,7 @@ int stx_listen(int queue, stx_server_t *server)
         return -1;
     }
     
-    if (listen(fd, 1000) < 0) {
+    if (listen(fd, 10000) < 0) {
         perror("listen");
         return -1;
     }
