@@ -57,6 +57,10 @@ int stx_event(int queue, int ident, stx_ev_t event, void *udata)
             ev.filter = STX_EVFILT_WRITE;
             ev.flags = STX_EVCTL_ADD | STX_EVCTL_ONESHOT;
             break;
+        case STX_EV_CLOSE:
+            ev.filter = STX_EVFILT_WRITE;
+            ev.flags = STX_EVCTL_ADD | STX_EVCTL_ONESHOT;
+            break;
         default:
             return -1;
             break;

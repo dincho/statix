@@ -59,5 +59,5 @@ void stx_read(int queue, stx_request_t *req)
         perror("recv");
     }
 
-    stx_close_request(req);
+    stx_event(queue, req->conn, STX_EV_CLOSE, req);
 }
