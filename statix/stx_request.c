@@ -26,6 +26,8 @@ stx_request_t* stx_init_request(stx_server_t *server, int conn)
     request->content_length = 0;
     request->fd = 0;
     request->status = STX_STATUS_NOT_IMPL;
+    request->buffer_used = 0;
+    request->uri_len = 0;
     
     //@todo init buffers & events
     return request;
