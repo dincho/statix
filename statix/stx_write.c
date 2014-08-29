@@ -15,46 +15,30 @@
 
 void stx_write(stx_request_t *req)
 {
-    const size_t BUFF_SZ = 1024;
-    char send_buff[BUFF_SZ];
-    ssize_t tx;
-    size_t send_buff_len;
     struct sf_hdtr headers = {NULL};
     struct iovec ivh;
-    
-    const char* response = response_templates[req->status];
-    
-    if (req->status != STX_STATUS_OK) {
-        tx = send(req->conn, response, strlen(response), 0);
+    ssize_t tx;
+    off_t sendfile_tx = 0; //sendfile sent bytes, it's in/out param
+
+    if (req->fd > 0) {
+        ivh.iov_base = req->buff;
+        ivh.iov_len = req->buffer_used;
+        headers.headers = &ivh;
+        headers.hdr_cnt = 1;
+        
+        if (sendfile(req->fd, req->conn, 0, &sendfile_tx, &headers, 0)) {
+            perror("sendfile");
+        }
+        
+        stx_log(req->server->logger, STX_LOG_DEBUG, "Sendfile TX: %d bytes", sendfile_tx);
+    } else {
+        tx = send(req->conn, req->buff, req->buffer_used, 0);
         if(-1 == tx) {
             perror("send");
         }
         
         stx_log(req->server->logger, STX_LOG_DEBUG, "TX: %d bytes", tx);
-        stx_close_request(req);
-
-        return;
-    }
-    
-    //populate response template with content-length
-    send_buff_len = snprintf(send_buff, BUFF_SZ, response, req->content_length);
-
-    if (req->fd) {
-        ivh.iov_base = &send_buff;
-        ivh.iov_len = send_buff_len;
-        headers.headers = &ivh;
-        headers.hdr_cnt = 1;
-        off_t len = 0; //send all
-        
-        if (sendfile(req->fd, req->conn, 0, &len, &headers, 0)) {
-            //handle errors
-            perror("sendfile");
-        }
-        
-        stx_log(req->server->logger, STX_LOG_DEBUG, "Sendfile TX: %d bytes", len);
     }
     
     stx_close_request(req);
-
-    return;
 }

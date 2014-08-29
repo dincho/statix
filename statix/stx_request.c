@@ -223,3 +223,27 @@ void stx_set_reqesut_content_type(stx_request_t *r)
         }
     }
 }
+
+void stx_build_response(stx_request_t *r)
+{
+    const char *body = "";
+
+    if (status_body[r->status]) {
+        body = status_body[r->status];
+        r->content_length = strlen(body);
+    }
+    
+    r->buffer_used = sprintf(r->buff,
+            "HTTP/1.1 %d %s\r\n"
+            "Server: Statix/0.1.0\r\n"
+            "Content-Type: %s; charset=utf-8\r\n"
+            "Content-Length: %lu\r\n"
+            "Connection: close\r\n"
+            "\r\n"
+            "%s",
+            r->status,
+            response_reason_phrase[r->status],
+            r->content_type,
+            r->content_length,
+            body);
+}

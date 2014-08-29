@@ -50,57 +50,52 @@ typedef struct {
     const char          *content_type;
 } stx_request_t;
 
-static const char * const response_templates[] = {
-    [STX_STATUS_OK] =
-        "HTTP/1.0 200 OK\r\n"
-        "Server: Statix/0.1.0\r\n"
-        "Content-Type: text/html; charset=utf-8\r\n"
-        "Content-Length: %lu\r\n"
-        "Connection: close\r\n"
-        "\r\n",
+static const char * const status_body[] = {
+    [STX_STATUS_OK] = NULL,
+    [STX_STATUS_BAD_REQ] = NULL,
+    [STX_STATUS_FORBIDDEN] = NULL,
     [STX_STATUS_NOT_FOUND] =
-        "HTTP/1.0 404 Not found\r\n"
-        "Server: Statix/0.1.0\r\n"
-        "Content-Type: text/html; charset=utf-8\r\n"
-        "Content-Length: 120\r\n"
-        "Connection: close\r\n"
-        "\r\n"
         "<html>\n"
         " <body>\n"
         " <h1>Error 404 (Not Found)</h1>\n"
         " <p>The requested URL was not found on this server.</p>\n"
         " </body>\n"
         "</html>\n",
+    [STX_STATUS_URI_TOO_LONG] =
+        "<html>\n"
+        " <body>\n"
+        " <h1>Request-URI Too Long</h1>\n"
+        " </body>\n"
+        "</html>\n",
+    [STX_STATUS_ERROR] =
+        "<html>\n"
+        " <body>\n"
+        " <h1>Internal Server Error</h1>\n"
+        " </body>\n"
+        "</html>\n",
     [STX_STATUS_NOT_IMPL] =
-        "HTTP/1.0 501 Method Not Implemented\r\n"
-        "Server: Statix/0.1.0\r\n"
-        "Content-Type: text/html; charset=utf-8\r\n"
-        "Content-Length: 120\r\n"
-        "Connection: close\r\n"
-        "\r\n"
         "<html>\n"
         " <body>\n"
         " <h1>Method Not Implemented</h1>\n"
         " <p>This method is not implemented by this server.</p>\n"
         " </body>\n"
         "</html>\n",
-    [STX_STATUS_URI_TOO_LONG] =
-        "HTTP/1.0 414 Request-URI Too Long\r\n"
-        "Server: Statix/0.1.0\r\n"
-        "Content-Type: text/html; charset=utf-8\r\n"
-        "Content-Length: 63\r\n"
-        "Connection: close\r\n"
-        "\r\n"
-        "<html>\n"
-        " <body>\n"
-        " <h1>Request-URI Too Long</h1>\n"
-        " </body>\n"
-        "</html>\n"
+};
+
+static const char * const response_reason_phrase[] = {
+    [STX_STATUS_OK] = "OK",
+    [STX_STATUS_BAD_REQ] = "Bad Request",
+    [STX_STATUS_FORBIDDEN] = "Forbidden",
+    [STX_STATUS_NOT_FOUND] = "Not Found",
+    [STX_STATUS_URI_TOO_LONG] = "Request-URI Too Long",
+    [STX_STATUS_ERROR] = "Internal Server Error",
+    [STX_STATUS_NOT_IMPL] = "Not Implemented"
 };
 
 stx_request_t* stx_init_request(stx_server_t *, int conn);
 int stx_parse_request_line(stx_request_t *);
 void stx_close_request(stx_request_t *);
 void stx_set_reqesut_content_type(stx_request_t *);
+void stx_build_response(stx_request_t *);
 
 #endif
