@@ -19,10 +19,11 @@ typedef struct {
 } stx_content_type_t;
 
 static stx_content_type_t content_types[] = {
-    {"html", "text/html"}, //default
+    {"html", "text/html; charset=UTF-8"}, //default
     {"jpg", "image/jpeg"},
     {"jpeg", "image/jpeg"},
     {"png", "image/png"},
+    {"txt", "text/plain; charset=UTF-8"}
 };
 
 stx_request_t* stx_init_request(stx_server_t *server, int conn)
@@ -236,7 +237,7 @@ void stx_build_response(stx_request_t *r)
     r->buffer_used = sprintf(r->buff,
             "HTTP/1.1 %d %s\r\n"
             "Server: Statix/0.1.0\r\n"
-            "Content-Type: %s; charset=utf-8\r\n"
+            "Content-Type: %s\r\n"
             "Content-Length: %lu\r\n"
             "Connection: close\r\n"
             "\r\n"
