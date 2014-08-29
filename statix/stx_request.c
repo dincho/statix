@@ -41,6 +41,7 @@ stx_request_t* stx_init_request(stx_server_t *server, int conn)
     request->fd = 0;
     request->status = STX_STATUS_NOT_IMPL;
     request->buffer_used = 0;
+    request->buffer_offset = 0;
     request->uri_start = NULL;
     request->uri_len = 0;
     request->ext_start = NULL;

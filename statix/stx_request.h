@@ -42,7 +42,8 @@ typedef struct {
     
     char            buff[8192]; //8K
     size_t          buffer_used;
-    
+    off_t           buffer_offset;
+
     //response
     int                 fd;
     response_status_t   status;

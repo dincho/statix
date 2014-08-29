@@ -11,6 +11,6 @@
 
 #include "stx_request.h"
 
-void stx_write(stx_request_t *req);
+void stx_write(int queue, stx_request_t *req);
 
 #endif
