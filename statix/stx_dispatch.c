@@ -13,15 +13,12 @@
 #include <errno.h>
 #include "stx_dispatch.h"
 
-
 void stx_dispatch(stx_request_t *r)
 {
     size_t namelen;
     char *filename;
     int fd;
     struct stat sb;
-    
-    stx_parse_request_line(r);
     
     if (r->method != STX_METHOD_GET) {
         r->status = STX_STATUS_NOT_IMPL;
@@ -63,7 +60,8 @@ void stx_dispatch(stx_request_t *r)
 
         return;
     }
-    
+
+
     free(filename);
     
     //sb.mtime
