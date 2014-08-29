@@ -58,7 +58,9 @@ int main(int argc, const char * argv[])
         
         if (nev == -1) {
             perror("stx_event_wait()");
-            return EXIT_FAILURE;
+            if (errno != EINTR) {
+                return EXIT_FAILURE;
+            }
         }
         
         for (int i = 0; i < nev; i++) {
