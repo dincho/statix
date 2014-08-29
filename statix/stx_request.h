@@ -33,16 +33,21 @@ typedef struct {
     method_t        method;
     int             major;
     int             minor;
+
     char            *uri_start;
     size_t          uri_len;
+    
+    char            *ext_start;
+    size_t          ext_len;
     
     char            buff[8192]; //8K
     size_t          buffer_used;
     
     //response
-    int                     fd;
-    response_status_t       status;
-    size_t                  content_length;
+    int                 fd;
+    response_status_t   status;
+    size_t              content_length;
+    const char          *content_type;
 } stx_request_t;
 
 static const char * const response_templates[] = {
@@ -96,5 +101,6 @@ static const char * const response_templates[] = {
 stx_request_t* stx_init_request(stx_server_t *, int conn);
 int stx_parse_request_line(stx_request_t *);
 void stx_close_request(stx_request_t *);
+void stx_set_reqesut_content_type(stx_request_t *);
 
 #endif

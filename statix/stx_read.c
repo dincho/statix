@@ -41,6 +41,7 @@ void stx_read(int queue, stx_request_t *req)
         
         //process request
         stx_parse_request_line(req);
+        stx_set_reqesut_content_type(req);
         stx_dispatch(req);
         stx_event(queue, req->conn, STX_EV_WRITE, req);
         

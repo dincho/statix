@@ -8,9 +8,22 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include "stx_request.h"
 #include "stx_log.h"
 
+
+typedef struct {
+    char  *ext;
+    char  *type;
+} stx_content_type_t;
+
+static stx_content_type_t content_types[] = {
+    {"html", "text/html"}, //default
+    {"jpg", "image/jpeg"},
+    {"jpeg", "image/jpeg"},
+    {"png", "image/png"},
+};
 
 stx_request_t* stx_init_request(stx_server_t *server, int conn)
 {
@@ -27,7 +40,10 @@ stx_request_t* stx_init_request(stx_server_t *server, int conn)
     request->fd = 0;
     request->status = STX_STATUS_NOT_IMPL;
     request->buffer_used = 0;
+    request->uri_start = NULL;
     request->uri_len = 0;
+    request->ext_start = NULL;
+    request->ext_len = 0;
     
     //@todo init buffers & events
     return request;
@@ -86,12 +102,23 @@ int stx_parse_request_line(stx_request_t *r)
                 r->uri_start = p - 1;
                 state = st_uri;
                 break;
-                
-                //consume everything until space
+
+            //consume everything until space and mark the extension
             case st_uri:
-                if (' ' == ch) {
-                    r->uri_len = p - 1 - r->uri_start;
-                    state = st_http_version;
+                switch (ch) {
+                    case ' ':
+                        r->uri_len = p - 1 - r->uri_start;
+                        if (r->ext_start) {
+                            r->ext_len = p - 1 - r->ext_start;
+                        }
+                        state = st_http_version;
+                        break;
+                    case '.':
+                        r->ext_start = p;
+                        break;
+                    case '/':
+                        r->ext_start = NULL;
+                        break;
                 }
                 
                 break;
@@ -177,4 +204,22 @@ void stx_close_request(stx_request_t *req)
 
     close(req->conn);
     free(req);
+}
+
+void stx_set_reqesut_content_type(stx_request_t *r)
+{
+    const int content_types_cnt = sizeof(content_types)/sizeof(stx_content_type_t);
+    
+    r->content_type = content_types[0].type;
+    
+    if (NULL == r->ext_start) {
+        return;
+    }
+    
+    for (int i = 0; i < content_types_cnt; i++) {
+        if (0 == strncasecmp(r->ext_start, content_types[i].ext, r->ext_len)) {
+            r->content_type = content_types[i].type;
+            break;
+        }
+    }
 }
