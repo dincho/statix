@@ -35,6 +35,7 @@ int main(int argc, const char * argv[])
     stx_server_t server;
     server.logger = &logger;
     server.port = 8000;
+    server.backlog = 10000;
     server.sock = -1;
     strcpy(server.index, "index.html");
     

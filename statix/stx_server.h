@@ -14,6 +14,7 @@
 typedef struct {
     stx_log_t   *logger;
     int         port;
+    int         backlog;
     char        webroot[1024];
     char        index[64];
     int         sock;
