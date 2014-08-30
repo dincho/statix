@@ -17,7 +17,6 @@
 #include "stx_request.h"
 #include "stx_log.h"
 
-
 typedef struct {
     char  *ext;
     char  *type;
@@ -295,8 +294,7 @@ void stx_request_build_response(stx_request_t *r)
             body);
 }
 
-
-void stx_request_close(stx_request_t *req)
+void stx_request_close(stx_request_t *req, stx_connection_pool_t *conn_pool)
 {
     if (req->fd > 0) {
         close(req->fd);
@@ -304,4 +302,7 @@ void stx_request_close(stx_request_t *req)
     
     close(req->conn);
     free(req);
+    
+    conn_pool->connections[req->conn] = -1;
+    conn_pool->current_connections--;
 }

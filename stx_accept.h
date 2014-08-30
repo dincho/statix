@@ -10,7 +10,8 @@
 #define statix_stx_accept_h
 
 #include "stx_server.h"
+#include "stx_connection.h"
 
-void stx_accept(int, stx_server_t *);
+void stx_accept(int, stx_server_t *, stx_connection_pool_t *conn_pool);
 
 #endif

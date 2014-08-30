@@ -14,6 +14,7 @@
 #include <sys/socket.h> /* For socket functions */
 #include <netdb.h> //getnameinfo
 #include <sys/fcntl.h>
+#include <arpa/inet.h>
 
 #include "stx_accept.h"
 #include "stx_request.h"
@@ -22,17 +23,17 @@
 #include "stx_event_queue.h"
 
 
-void stx_accept(int queue, stx_server_t *server)
+void stx_accept(int queue, stx_server_t *server, stx_connection_pool_t *conn_pool)
 {
-    struct sockaddr_storage ss;
-    socklen_t slen = sizeof(ss);
-    int conn, rc;
-    char host[NI_MAXHOST];
-    char port[NI_MAXSERV];
+    struct sockaddr addr;
+    socklen_t addr_size = sizeof(struct sockaddr);
+    struct sockaddr_in *sin;
+    char ip_str[INET_ADDRSTRLEN];
+    int conn;
     stx_request_t *request;
     
     for (;;) {
-        conn = accept(server->sock, NULL, 0);
+        conn = accept(server->sock, &addr, &addr_size);
         if (conn < 0) {
             if (errno != EAGAIN) {
                 perror("accept");
@@ -41,19 +42,28 @@ void stx_accept(int queue, stx_server_t *server)
             break;
         }
         
+        if (conn_pool->current_connections >= conn_pool->max_connections) {
+            stx_log(server->logger,
+                    STX_LOG_ERR,
+                    "Connection limit %d reached, closing #%d",
+                    conn_pool->max_connections,
+                    conn);
+            close(conn);
+
+            break;
+        }
+        
+        sin = (struct sockaddr_in *)&addr;
+        inet_ntop(AF_INET, &sin->sin_addr.s_addr, ip_str, INET_ADDRSTRLEN);
+        
+        stx_log(server->logger, STX_LOG_INFO, "Accepted connection #%d from %s",
+                conn, ip_str);
+        
         if (-1 == fcntl(conn, F_SETFL, fcntl(conn, F_GETFL, 0) | O_NONBLOCK)) {
             perror("fcntl");
             close(conn);
             
-            break;
-        }
-
-        rc = getnameinfo((struct sockaddr *)&ss, slen,
-                             host, sizeof(host), port, sizeof(port),
-                             NI_NUMERICHOST | NI_NUMERICSERV);
-        if (rc == 0) {
-            stx_log(server->logger, STX_LOG_INFO,
-                    "Accepted connection from %s:%s", host, port);
+            continue;
         }
         
         request = stx_request_init(server, conn);
@@ -62,9 +72,12 @@ void stx_accept(int queue, stx_server_t *server)
                     "Error while initializing request");
             close(conn);
             
-            break;
+            continue;
         }
         
+        conn_pool->current_connections++;
+        conn_pool->connections[conn] = 1;
+
         stx_event(queue, conn, STX_EV_READ, request);
     }
 }
