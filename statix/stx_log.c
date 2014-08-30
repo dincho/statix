@@ -12,6 +12,10 @@
 
 void stx_log(stx_log_t *logger, stx_log_level_t level, const char *fmt, ...)
 {
+    if (logger->level < level) {
+        return;
+    }
+
     va_list arg;
     
     /* Write the error message */

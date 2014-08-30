@@ -12,10 +12,10 @@
 #include <stdio.h> //FILE pointer
 
 typedef enum {
-    STX_LOG_DEBUG = 0,
-    STX_LOG_INFO,
+    STX_LOG_ERR = 0,
     STX_LOG_WARN,
-    STX_LOG_ERR
+    STX_LOG_INFO,
+    STX_LOG_DEBUG,
 } stx_log_level_t;
 
 typedef struct {
