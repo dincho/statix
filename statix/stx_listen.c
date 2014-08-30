@@ -14,7 +14,7 @@
 #include "stx_listen.h"
 #include "stx_event_queue.h"
 
-int stx_listen(int queue, stx_server_t *server)
+int stx_listen(stx_server_t *server)
 {
     int fd;
     struct sockaddr_in sin;
@@ -51,5 +51,5 @@ int stx_listen(int queue, stx_server_t *server)
     
     stx_log(server->logger, STX_LOG_INFO, "Listening for new connections....");
     
-    return stx_event(queue, fd, STX_EV_ACCEPT, server);
+    return 0;
 }
