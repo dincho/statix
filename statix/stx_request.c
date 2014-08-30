@@ -60,6 +60,7 @@ int stx_parse_request_line(stx_request_t *r)
         st_start = 0,
         st_uri_start,
         st_uri,
+        st_param,
         st_http_version,
         st_first_major_digit,
         st_major_digit,
@@ -109,11 +110,13 @@ int stx_parse_request_line(stx_request_t *r)
             case st_uri:
                 switch (ch) {
                     case ' ':
+                    case '?':
                         r->uri_len = p - 1 - r->uri_start;
                         if (r->ext_start) {
                             r->ext_len = p - 1 - r->ext_start;
                         }
-                        state = st_http_version;
+
+                        state = (ch == '?') ? st_param : st_http_version;
                         break;
                     case '.':
                         r->ext_start = p;
@@ -123,6 +126,14 @@ int stx_parse_request_line(stx_request_t *r)
                         break;
                 }
                 
+                break;
+                
+            //consume all until space
+            case st_param:
+                if (ch == ' ') {
+                    state = st_http_version;
+                }
+
                 break;
                 
                 // "HTTP/"
