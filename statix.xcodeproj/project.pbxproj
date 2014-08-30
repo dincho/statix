@@ -41,6 +41,7 @@
 		5B3BCAD618CCEC2F00286ADB /* stx_request.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_request.h; sourceTree = "<group>"; };
 		5B4B90E9190ACB080015AF8F /* stx_server.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_server.h; sourceTree = "<group>"; };
 		5B4B90EA190ACB120015AF8F /* stx_server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_server.c; sourceTree = "<group>"; };
+		5B5C9D9119B213E200322E67 /* tune.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = tune.sh; sourceTree = "<group>"; };
 		5B5C9D9219B22CE000322E67 /* stx_connection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_connection.h; sourceTree = "<group>"; };
 		5B83410B18D7821800BAF1D9 /* stx_request.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_request.c; sourceTree = "<group>"; };
 		5B83411018D78BA100BAF1D9 /* stx_listen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_listen.h; sourceTree = "<group>"; };
@@ -116,6 +117,7 @@
 				5B89554319ACBB23006E77C6 /* stx_event_queue.c */,
 				5BB3E9C819B1E9E10021C04C /* stx_worker.h */,
 				5BB3E9C919B1E9EC0021C04C /* stx_worker.c */,
+				5B5C9D9119B213E200322E67 /* tune.sh */,
 				5B5C9D9219B22CE000322E67 /* stx_connection.h */,
 			);
 			path = statix;
