@@ -13,8 +13,9 @@
 #include "stx_accept.h"
 #include "stx_read.h"
 #include "stx_write.h"
+#include "stx_log.h"
 
-static const int MAX_EVENTS = 10;
+static const int MAX_EVENTS = 1024; //x 32b = 32Kb
 
 void stx_worker(stx_server_t *server)
 {
