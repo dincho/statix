@@ -57,7 +57,7 @@ void stx_accept(int queue, stx_server_t *server)
                     "Accepted connection from %s:%s", host, port);
         }
         
-        request = stx_init_request(server, conn);
+        request = stx_request_init(server, conn);
         if (NULL == request) {
             stx_log(server->logger, STX_LOG_ERR,
                     "Error while initializing request");

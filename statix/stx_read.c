@@ -40,10 +40,10 @@ void stx_read(int queue, stx_request_t *req)
         stx_log(req->server->logger, STX_LOG_DEBUG, "rx: %d bytes", rx);
         
         //process request
-        stx_parse_request_line(req);
-        stx_set_reqesut_content_type(req);
+        stx_request_parse_line(req);
+        stx_request_set_content_type(req);
         stx_dispatch(req);
-        stx_build_response(req);
+        stx_request_build_response(req);
 
         stx_event(queue, req->conn, STX_EV_WRITE, req);
         

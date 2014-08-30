@@ -78,7 +78,7 @@ int main(int argc, const char * argv[])
                     stx_write(queue, ev_data->data); //request
                     break;
                 case STX_EV_CLOSE:
-                    stx_close_request(ev_data->data); //request
+                    stx_request_close(ev_data->data); //request
                     break;
             }
             

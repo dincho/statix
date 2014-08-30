@@ -61,5 +61,5 @@ void stx_write(int queue, stx_request_t *req)
         stx_log(req->server->logger, STX_LOG_DEBUG, "tx: %d bytes", tx);
     }
     
-    stx_close_request(req);
+    stx_request_close(req);
 }

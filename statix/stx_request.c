@@ -26,7 +26,7 @@ static stx_content_type_t content_types[] = {
     {"txt", "text/plain; charset=UTF-8"}
 };
 
-stx_request_t* stx_init_request(stx_server_t *server, int conn)
+stx_request_t* stx_request_init(stx_server_t *server, int conn)
 {
     stx_request_t *request;
     
@@ -51,7 +51,7 @@ stx_request_t* stx_init_request(stx_server_t *server, int conn)
     return request;
 }
 
-int stx_parse_request_line(stx_request_t *r)
+int stx_request_parse_line(stx_request_t *r)
 {
     char   ch;
     char  *p;
@@ -209,7 +209,7 @@ int stx_parse_request_line(stx_request_t *r)
     return -1;
 }
 
-void stx_close_request(stx_request_t *req)
+void stx_request_close(stx_request_t *req)
 {
     if (req->fd > 0) {
         close(req->fd);
@@ -219,7 +219,7 @@ void stx_close_request(stx_request_t *req)
     free(req);
 }
 
-void stx_set_reqesut_content_type(stx_request_t *r)
+void stx_request_set_content_type(stx_request_t *r)
 {
     const int content_types_cnt = sizeof(content_types)/sizeof(stx_content_type_t);
     
@@ -237,7 +237,7 @@ void stx_set_reqesut_content_type(stx_request_t *r)
     }
 }
 
-void stx_build_response(stx_request_t *r)
+void stx_request_build_response(stx_request_t *r)
 {
     const char *body = "";
 
