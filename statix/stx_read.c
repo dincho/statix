@@ -45,22 +45,21 @@ void stx_read(int queue, stx_request_t *req)
         stx_request_build_response(req);
 
         stx_event(queue, req->conn, STX_EV_WRITE, req);
-        
-        return;
     }
 
     //connection closed by peer
     if (rx == 0) {
         stx_log(req->server->logger, STX_LOG_ERR, "Connection closed by peer");
+        stx_event(queue, req->conn, STX_EV_CLOSE, req);
     }
     
-    //rx == -1
-    if (errno == EAGAIN) {
-        stx_log(req->server->logger, STX_LOG_DEBUG, "EAGAIN while reading");
-        stx_event(queue, req->conn, STX_EV_READ, req);
-    } else {
-        perror("recv");
+    if (rx == -1) {
+        if (errno == EAGAIN) {
+            stx_log(req->server->logger, STX_LOG_WARN, "EAGAIN while reading #%d", req->conn);
+            stx_event(queue, req->conn, STX_EV_READ, req);
+        } else {
+            perror("recv");
+            stx_event(queue, req->conn, STX_EV_CLOSE, req);
+        }
     }
-
-    stx_event(queue, req->conn, STX_EV_CLOSE, req);
 }
