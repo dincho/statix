@@ -11,6 +11,6 @@
 
 #include "stx_server.h"
 
-void stx_worker(stx_server_t *server);
+void *stx_worker(void *arg);
 
 #endif

@@ -10,6 +10,7 @@
 #include <stdio.h> //stderr
 #include <string.h> //strcpy
 #include <unistd.h> //getcwd
+#include <pthread.h>
 
 #include "stx_log.h"
 #include "stx_server.h"
@@ -19,6 +20,9 @@
 
 int main(int argc, const char * argv[])
 {
+    const int NB_THREADS = 4;
+    pthread_t threads[NB_THREADS];
+
     stx_log_t logger;
     logger.level = STX_LOG_DEBUG;
     logger.fp = stderr;
@@ -39,7 +43,20 @@ int main(int argc, const char * argv[])
         return EXIT_FAILURE;
     }
     
-    stx_worker(&server);
+    for (int i = 0; i < NB_THREADS; i++) {
+        if (pthread_create(&threads[i], NULL, stx_worker, &server)) {
+            perror("pthread_create");
+            return EXIT_FAILURE;
+        }
+    }
+    
+    for (int i = 0; i < NB_THREADS; i++) {
+        if (pthread_join(threads[i], NULL)) {
+            perror("pthread_join");
+            return EXIT_FAILURE;
+        }
+    }
 
     return EXIT_SUCCESS;
 }
+

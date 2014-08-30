@@ -17,16 +17,17 @@
 
 static const int MAX_EVENTS = 1024; //x 32b = 32Kb
 
-void stx_worker(stx_server_t *server)
+void *stx_worker(void *arg)
 {
     int queue, nev;
     stx_event_t chlist[MAX_EVENTS];
     stx_event_t ev;
     stx_event_data_t *ev_data;
+    stx_server_t *server = arg;
 
     if ((queue = stx_queue_create()) == -1) {
         perror("kqueue");
-        return;
+        return NULL;
     }
 
     stx_event(queue, server->sock, STX_EV_ACCEPT, server);
@@ -67,4 +68,6 @@ void stx_worker(stx_server_t *server)
     }
     
     stx_queue_close(queue);
+    
+    return NULL;
 }
