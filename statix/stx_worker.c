@@ -49,6 +49,17 @@ void *stx_worker(void *arg)
         
         for (int i = 0; i < nev; i++) {
             ev = chlist[i];
+            
+            if (ev.flags & EV_EOF) {
+                stx_log(server->logger, STX_LOG_WARN, "Connection reset by peer: #%d", ev.ident);
+                continue;
+            }
+            
+            if (ev.flags & EV_ERROR) {
+                stx_log(server->logger, STX_LOG_ERR, "Event error: #%d", ev.ident);
+                continue;
+            }
+
             ev_data = (stx_event_data_t *) ev.udata;
             
             switch (ev_data->event_type) {
@@ -63,6 +74,9 @@ void *stx_worker(void *arg)
                     break;
                 case STX_EV_CLOSE:
                     stx_request_close(ev_data->data, &conn_pool); //request
+                    break;
+                default:
+                    stx_log(server->logger, STX_LOG_ERR, "Unknown event type: %d", ev_data->event_type);
                     break;
             }
             
