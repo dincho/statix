@@ -9,6 +9,10 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <fcntl.h> //O_RDONLY
+#include <sys/stat.h>
+#include <errno.h>
+
 #include "stx_request.h"
 #include "stx_log.h"
 
@@ -209,14 +213,66 @@ int stx_request_parse_line(stx_request_t *r)
     return -1;
 }
 
-void stx_request_close(stx_request_t *req)
+void stx_request_process_file(stx_request_t *r)
 {
-    if (req->fd > 0) {
-        close(req->fd);
+    size_t namelen;
+    char *filename;
+    int fd;
+    struct stat sb;
+    
+    if (r->method != STX_METHOD_GET) {
+        r->status = STX_STATUS_NOT_IMPL;
+        return;
     }
-
-    close(req->conn);
-    free(req);
+    
+    namelen = strlen(r->server->webroot) + r->uri_len;
+    if (*(r->uri_start + r->uri_len - 1) == '/') {
+        namelen += strlen(r->server->index);
+    }
+    
+    filename = malloc(namelen * sizeof(char));
+    strcpy(filename, r->server->webroot);
+    strncat(filename, r->uri_start, r->uri_len);
+    
+    if (*(r->uri_start + r->uri_len - 1) == '/') {
+        strncat(filename, r->server->index, strlen(r->server->index));
+    }
+    
+    if ((fd = open(filename, O_RDONLY)) == -1) {
+        if (ENOENT == errno) {
+            r->status = STX_STATUS_NOT_FOUND;
+        } else if (EACCES == errno) {
+            r->status = STX_STATUS_FORBIDDEN;
+        } else {
+            r->status = STX_STATUS_ERROR;
+            perror("open");
+        }
+        
+        free(filename);
+        
+        return;
+    }
+    
+    if (fstat(fd, &sb) == -1) {
+        r->status = STX_STATUS_ERROR;
+        perror("fstat");
+        free(filename);
+        
+        return;
+    }
+    
+    
+    free(filename);
+    
+    //sb.mtime
+    //content type
+    //charset ?
+    //date
+    r->status = STX_STATUS_OK;
+    r->content_length = sb.st_size;
+    r->fd = fd;
+    
+    return;
 }
 
 void stx_request_set_content_type(stx_request_t *r)
@@ -259,4 +315,15 @@ void stx_request_build_response(stx_request_t *r)
             r->content_type,
             r->content_length,
             body);
+}
+
+
+void stx_request_close(stx_request_t *req)
+{
+    if (req->fd > 0) {
+        close(req->fd);
+    }
+    
+    close(req->conn);
+    free(req);
 }

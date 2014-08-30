@@ -17,7 +17,6 @@
 
 #include "stx_accept.h"
 #include "stx_request.h"
-#include "stx_dispatch.h"
 #include "stx_read.h"
 #include "stx_log.h"
 #include "stx_event_queue.h"

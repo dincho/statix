@@ -12,7 +12,6 @@
 #include <unistd.h> //close
 
 #include "stx_read.h"
-#include "stx_dispatch.h"
 #include "stx_log.h"
 #include "stx_event_queue.h"
 
@@ -42,7 +41,7 @@ void stx_read(int queue, stx_request_t *req)
         //process request
         stx_request_parse_line(req);
         stx_request_set_content_type(req);
-        stx_dispatch(req);
+        stx_request_process_file(req);
         stx_request_build_response(req);
 
         stx_event(queue, req->conn, STX_EV_WRITE, req);
