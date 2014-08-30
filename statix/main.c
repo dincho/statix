@@ -28,7 +28,7 @@ int main(int argc, const char * argv[])
     server.port = 8000;
     server.backlog = 10000;
     server.sock = -1;
-    strcpy(server.index, "index.html");
+    strncpy(server.index, "index.html", sizeof(server.index));
     
     if (NULL == getcwd(server.webroot, sizeof(server.webroot))) {
         perror("getcwd");
