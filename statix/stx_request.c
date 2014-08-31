@@ -294,15 +294,14 @@ void stx_request_build_response(stx_request_t *r)
             body);
 }
 
-void stx_request_close(stx_request_t *req, stx_connection_pool_t *conn_pool)
+void stx_request_close(stx_request_t *req, stx_conn_pool_t *conn_pool)
 {
     if (req->fd > 0) {
         close(req->fd);
     }
     
+    stx_conn_pool_remove(conn_pool, req->conn);
+
     close(req->conn);
     free(req);
-    
-    conn_pool->connections[req->conn] = -1;
-    conn_pool->current_connections--;
 }

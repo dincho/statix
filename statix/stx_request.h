@@ -11,7 +11,7 @@
 
 #include <stdlib.h> //size_t
 #include "stx_server.h"
-#include "stx_connection.h"
+#include "stx_conn_pool.h"
 
 typedef enum {
     STX_METHOD_GET = 1,
@@ -96,7 +96,7 @@ static const char * const response_reason_phrase[] = {
 
 stx_request_t* stx_request_init(stx_server_t *, int conn);
 int stx_request_parse_line(stx_request_t *);
-void stx_request_close(stx_request_t *, stx_connection_pool_t *conn_pool);
+void stx_request_close(stx_request_t *, stx_conn_pool_t *conn_pool);
 void stx_request_process_file(stx_request_t *r);
 void stx_request_set_content_type(stx_request_t *);
 void stx_request_build_response(stx_request_t *);
