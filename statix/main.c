@@ -20,11 +20,11 @@
 
 int main(int argc, const char * argv[])
 {
-    const int NB_THREADS = 4;
+    const int NB_THREADS = 2;
     pthread_t threads[NB_THREADS];
 
     stx_log_t logger;
-    logger.level = STX_LOG_DEBUG;
+    logger.level = STX_LOG_WARN;
     logger.fp = stderr;
 
     if (pthread_mutex_init(&logger.mutex, NULL)) {
