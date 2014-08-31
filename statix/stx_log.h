@@ -10,6 +10,7 @@
 #define statix_stx_log_h
 
 #include <stdio.h> //FILE pointer
+#include <pthread.h>
 
 typedef enum {
     STX_LOG_ERR = 0,
@@ -19,6 +20,7 @@ typedef enum {
 } stx_log_level_t;
 
 typedef struct {
+    pthread_mutex_t mutex;
     FILE *fp;
     int level;
 } stx_log_t;

@@ -26,7 +26,12 @@ int main(int argc, const char * argv[])
     stx_log_t logger;
     logger.level = STX_LOG_DEBUG;
     logger.fp = stderr;
-    
+
+    if (pthread_mutex_init(&logger.mutex, NULL)) {
+        perror("pthread_mutex_init");
+        return EXIT_FAILURE;
+    }
+
     stx_server_t server;
     server.logger = &logger;
     server.port = 8000;
