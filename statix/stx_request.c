@@ -16,6 +16,7 @@
 
 #include "stx_request.h"
 #include "stx_log.h"
+#include "stx_event_queue.h"
 
 typedef struct {
     char  *ext;
@@ -41,6 +42,15 @@ stx_request_t* stx_request_init(stx_server_t *server, int conn)
     
     request->server = server;
     request->conn = conn;
+    
+    stx_request_reset(request);
+
+    return request;
+}
+
+void stx_request_reset(stx_request_t *request)
+{
+    request->close = 0;
     request->content_length = 0;
     request->fd = 0;
     request->status = STX_STATUS_NOT_IMPL;
@@ -50,9 +60,7 @@ stx_request_t* stx_request_init(stx_server_t *server, int conn)
     request->uri_len = 0;
     request->ext_start = NULL;
     request->ext_len = 0;
-    
-    //@todo init buffers & events
-    return request;
+    request->headers_start = NULL;
 }
 
 int stx_request_parse_line(stx_request_t *r)
@@ -142,6 +150,7 @@ int stx_request_parse_line(stx_request_t *r)
                 
                 // "HTTP/"
             case st_http_version:
+                *(p-1) = '\0';
                 
                 if (ch != 'H' || *p != 'T' || *(p + 1) != 'T' || *(p + 2) != 'P' || *(p + 3) != '/') {
                     return -1;
@@ -201,6 +210,8 @@ int stx_request_parse_line(stx_request_t *r)
                     return -1;
                 }
                 
+                r->headers_start = p;
+                
                 state = st_done;
                 break;
                 
@@ -211,6 +222,117 @@ int stx_request_parse_line(stx_request_t *r)
     }
     
     return -1;
+}
+
+long stx_request_parse_headers_line(stx_request_t *r, char *name, char **value)
+{
+    typedef enum {
+        st_name = 0,
+        st_space_before_value,
+        st_value,
+        st_crln,
+        st_done
+    } state_t;
+
+    char   ch;
+    char  *p;
+    state_t state;
+    
+    state = st_name;
+    p = name;
+    
+    while (state != st_done) {
+        ch = *p++;
+        
+        switch (state) {
+            case st_name:
+                if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || ch == '-') {
+                    state = st_name; //eat more
+                } else if (ch == ':') {
+                    *(p-1) = '\0';
+                    state = st_space_before_value;
+                } else {
+                    return -1;
+                }
+
+                break;
+                
+            case st_space_before_value:
+                if (ch != ' ') {
+                    return -1;
+                }
+                
+                *value = p;
+                state = st_value;
+                break;
+
+            case st_value:
+                switch (ch) {
+                    case '\n':
+                        *(p-1) = '\0';
+                        state = st_done;
+                        break;
+                    case '\r':
+                        *(p-1) = '\0';
+                        state = st_crln;
+                        break;
+                    default:
+                        //eat other chars as value
+                        break;
+                }
+                break;
+
+            case st_crln:
+                if (ch != '\n') {
+                    return -1;
+                }
+
+                state = st_done;
+                break;
+
+            //warning suspression
+            case st_done:
+                break;
+        }
+    }
+    
+    return p - name;
+}
+
+int stx_request_parse_headers(stx_request_t *r)
+{
+    char *buffer_end;
+    char *name;
+    char *value;
+    long ret;
+    
+    buffer_end = r->buff + r->buffer_used;
+    name = value = r->headers_start;
+    
+    while (name < buffer_end) {
+        ret = stx_request_parse_headers_line(r, name, &value);
+        
+        if (ret == -1) {
+            return -1;
+        }
+        
+        if (0 == strcasecmp(name, "connection")) {
+            if (0 == strcasecmp(value, "close")) {
+                r->close = 1;
+            }
+            
+            //currently only connection header is supported so don't go further
+            return 0;
+        }
+
+        name += ret;
+        
+        if (name[0] == '\r' && name[1] == '\n') {
+            break; //all parsed
+        }
+    }
+    
+    return 0;
 }
 
 void stx_request_process_file(stx_request_t *r)
@@ -273,7 +395,7 @@ void stx_request_set_content_type(stx_request_t *r)
 void stx_request_build_response(stx_request_t *r)
 {
     const char *body = "";
-
+    
     if (status_body[r->status]) {
         body = status_body[r->status];
         r->content_length = strlen(body);
@@ -284,24 +406,30 @@ void stx_request_build_response(stx_request_t *r)
             "Server: Statix/0.1.0\r\n"
             "Content-Type: %s\r\n"
             "Content-Length: %lu\r\n"
-            "Connection: close\r\n"
+            "Connection: %s\r\n"
             "\r\n"
             "%s",
             r->status,
             response_reason_phrase[r->status],
             r->content_type,
             r->content_length,
+            r->close ? "close" : "keep-alive",
             body);
 }
 
-void stx_request_close(stx_request_t *req, stx_conn_pool_t *conn_pool)
+void stx_request_close(int queue, stx_request_t *req, stx_conn_pool_t *conn_pool)
 {
     if (req->fd > 0) {
         close(req->fd);
     }
     
-    stx_conn_pool_remove(conn_pool, req->conn);
-
-    close(req->conn);
-    free(req);
+    if (req->close) {
+        stx_conn_pool_remove(conn_pool, req->conn);
+        
+        close(req->conn);
+        free(req);
+    } else {
+        stx_request_reset(req);
+        stx_event(queue, req->conn, STX_EV_READ, req);
+    }
 }

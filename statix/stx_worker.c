@@ -28,6 +28,7 @@ void *stx_worker(void *arg)
     stx_event_data_t *ev_data;
     stx_server_t *server = arg;
     stx_conn_pool_t *conn_pool;
+    stx_request_t *request;
     
     stx_log(server->logger, STX_LOG_DEBUG, "Started new worker thread");
     
@@ -56,11 +57,6 @@ void *stx_worker(void *arg)
         for (int i = 0; i < nev; i++) {
             ev = chlist[i];
             
-            if (ev.flags & EV_EOF) {
-                stx_log(server->logger, STX_LOG_WARN, "Connection reset by peer: #%d", ev.ident);
-                continue;
-            }
-            
             if (ev.flags & EV_ERROR) {
                 stx_log(server->logger, STX_LOG_ERR, "Event error: #%d", ev.ident);
                 continue;
@@ -70,16 +66,28 @@ void *stx_worker(void *arg)
             
             switch (ev_data->event_type) {
                 case STX_EV_ACCEPT:
+                    stx_log(server->logger, STX_LOG_DEBUG, "STX_EV_ACCEPT: #%d", ev.ident);
                     stx_accept(queue, ev_data->data, conn_pool);
                     break;
                 case STX_EV_READ:
-                    stx_read(queue, ev_data->data); //request
+                    stx_log(server->logger, STX_LOG_DEBUG, "STX_EV_READ: #%d", ev.ident);
+                    request = (stx_request_t *) ev_data->data;
+                    request->close = ev.flags & EV_EOF;
+
+                    if (request->close) {
+                        stx_request_close(queue, request, conn_pool);
+                    } else {
+                        stx_read(queue, request);
+                    }
+                    
                     break;
                 case STX_EV_WRITE:
+                    stx_log(server->logger, STX_LOG_DEBUG, "STX_EV_WRITE: #%d", ev.ident);
                     stx_write(queue, ev_data->data); //request
                     break;
                 case STX_EV_CLOSE:
-                    stx_request_close(ev_data->data, conn_pool); //request
+                    stx_log(server->logger, STX_LOG_DEBUG, "STX_EV_CLOSE: #%d", ev.ident);
+                    stx_request_close(queue, ev_data->data, conn_pool); //request
                     break;
                 default:
                     stx_log(server->logger, STX_LOG_ERR, "Unknown event type: %d", ev_data->event_type);

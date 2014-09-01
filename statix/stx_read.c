@@ -36,20 +36,22 @@ void stx_read(int queue, stx_request_t *req)
     if (rx > 0) {
         req->buffer_used += rx;
 
-        stx_log(req->server->logger, STX_LOG_DEBUG, "rx: %d bytes", rx);
-        
         //process request
         stx_request_parse_line(req);
+        stx_request_parse_headers(req);
         stx_request_set_content_type(req);
         stx_request_process_file(req);
         stx_request_build_response(req);
-
         stx_event(queue, req->conn, STX_EV_WRITE, req);
+        
+        stx_log(req->server->logger, STX_LOG_DEBUG, "rx: %d bytes", rx);
+        stx_log(req->server->logger, STX_LOG_INFO, "GET %s", req->uri_start);
     }
 
     //connection closed by peer
     if (rx == 0) {
         stx_log(req->server->logger, STX_LOG_ERR, "Connection closed by peer");
+        req->close = 1;
         stx_event(queue, req->conn, STX_EV_CLOSE, req);
     }
     

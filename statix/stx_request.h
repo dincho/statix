@@ -44,6 +44,10 @@ typedef struct {
     char            buff[8192]; //8K
     size_t          buffer_used;
     off_t           buffer_offset;
+    
+    char            *headers_start;
+
+    int             close;
 
     //response
     int                 fd;
@@ -95,8 +99,11 @@ static const char * const response_reason_phrase[] = {
 };
 
 stx_request_t* stx_request_init(stx_server_t *, int conn);
+void stx_request_reset(stx_request_t *request);
 int stx_request_parse_line(stx_request_t *);
-void stx_request_close(stx_request_t *, stx_conn_pool_t *conn_pool);
+long stx_request_parse_headers_line(stx_request_t *, char *name, char **value);
+int stx_request_parse_headers(stx_request_t *);
+void stx_request_close(int queue, stx_request_t *, stx_conn_pool_t *conn_pool);
 void stx_request_process_file(stx_request_t *r);
 void stx_request_set_content_type(stx_request_t *);
 void stx_request_build_response(stx_request_t *);
