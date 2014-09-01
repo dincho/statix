@@ -13,12 +13,14 @@
 
 void stx_log(stx_log_t *logger, stx_log_level_t level, const char *fmt, ...)
 {    
-    pthread_t t = pthread_self();
+    pthread_t t;
     va_list arg;
 
     if (logger->level < level) {
         return;
     }
+    
+    t = pthread_self();
     
     /* Write the error message */
     pthread_mutex_lock(&logger->mutex);
