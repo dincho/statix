@@ -54,8 +54,8 @@ void stx_read(int queue, stx_request_t *req)
     }
     
     if (rx == -1) {
-        if (errno == EAGAIN) {
-            stx_log(req->server->logger, STX_LOG_WARN, "EAGAIN while reading #%d", req->conn);
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            stx_log(req->server->logger, STX_LOG_WARN, "EAGAIN/EWOULDBLOCK while reading #%d", req->conn);
             stx_event(queue, req->conn, STX_EV_READ, req);
         } else {
             perror("recv");
