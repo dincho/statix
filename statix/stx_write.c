@@ -38,6 +38,8 @@ void stx_write(int queue, stx_request_t *req)
 
         if (sf_ret) {
             if (errno == EAGAIN) {
+                stx_log(req->server->logger, STX_LOG_WARN, "[sendfile] EAGAIN/EWOULDBLOCK conn:#%d, fd:#%d", req->conn,  req->fd);
+                
                 //deduct headers
                 if (req->buffer_offset == 0) {
                     req->buffer_offset -= req->buffer_used;
