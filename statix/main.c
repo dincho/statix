@@ -48,6 +48,12 @@ int main(int argc, const char * argv[])
         return EXIT_FAILURE;
     }
     
+    if (NB_THREADS < 2) {
+        stx_worker(&server);
+        
+        return EXIT_SUCCESS;
+    }
+
     for (int i = 0; i < NB_THREADS; i++) {
         if (pthread_create(&threads[i], NULL, stx_worker, &server)) {
             perror("pthread_create");
