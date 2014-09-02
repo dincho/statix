@@ -37,6 +37,8 @@ int main(int argc, const char * argv[])
     server.port = 8000;
     server.backlog = 10000;
     server.sock = -1;
+    server.max_connections = 1000;
+    
     strncpy(server.index, "index.html", sizeof(server.index));
     
     if (NULL == getcwd(server.webroot, sizeof(server.webroot))) {

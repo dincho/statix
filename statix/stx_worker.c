@@ -15,10 +15,9 @@
 #include "stx_read.h"
 #include "stx_write.h"
 #include "stx_log.h"
-#include "stx_conn_pool.h"
+
 
 static const int MAX_EVENTS = 1024; //x 32b = 32Kb
-
 
 void *stx_worker(void *arg)
 {
@@ -27,12 +26,12 @@ void *stx_worker(void *arg)
     stx_event_t ev;
     stx_event_data_t *ev_data;
     stx_server_t *server = arg;
-    stx_conn_pool_t *conn_pool;
+    stx_list_t *conn_pool;
     stx_request_t *request;
     
     stx_log(server->logger, STX_LOG_DEBUG, "Started new worker thread");
     
-    if (NULL == (conn_pool = stx_conn_pool_init(1000))) {
+    if (NULL == (conn_pool = stx_list_init())) {
         stx_log(server->logger, STX_LOG_ERR, "Cannot create connection pool");
         return NULL;
     }
@@ -101,7 +100,7 @@ void *stx_worker(void *arg)
     }
     
     stx_queue_close(queue);
-    stx_conn_pool_destroy(conn_pool);
+    stx_list_destroy(conn_pool);
     
     return NULL;
 }

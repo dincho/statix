@@ -22,7 +22,7 @@
 #include "stx_log.h"
 #include "stx_event_queue.h"
 
-void stx_accept(int queue, stx_server_t *server, stx_conn_pool_t *conn_pool)
+void stx_accept(int queue, stx_server_t *server, stx_list_t *conn_pool)
 {
     struct sockaddr addr;
     socklen_t addr_size = sizeof(struct sockaddr);
@@ -41,12 +41,13 @@ void stx_accept(int queue, stx_server_t *server, stx_conn_pool_t *conn_pool)
             break;
         }
 
-        if (stx_conn_pool_full(conn_pool)) {
+        if (conn_pool->count >= server->max_connections) {
             stx_log(server->logger,
                     STX_LOG_ERR,
                     "Connection limit %d reached, closing #%d",
-                    conn_pool->max,
+                    server->max_connections,
                     conn);
+
             close(conn);
 
             break;
@@ -74,7 +75,7 @@ void stx_accept(int queue, stx_server_t *server, stx_conn_pool_t *conn_pool)
             continue;
         }
         
-        stx_conn_pool_add(conn_pool, conn);
+        stx_list_append(conn_pool, (void *)conn);
 
         stx_event(queue, conn, STX_EV_READ, request);
     }

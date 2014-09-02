@@ -19,6 +19,7 @@ typedef struct {
     char        webroot[PATH_MAX];
     char        index[NAME_MAX];
     int         sock;
+    int         max_connections;
 } stx_server_t;
 
 #endif

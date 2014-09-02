@@ -417,14 +417,19 @@ void stx_request_build_response(stx_request_t *r)
             body);
 }
 
-void stx_request_close(int queue, stx_request_t *req, stx_conn_pool_t *conn_pool)
+void stx_request_close(int queue, stx_request_t *req, stx_list_t *conn_pool)
 {
+    stx_list_node_t *node;
+    
     if (req->fd > 0) {
         close(req->fd);
     }
     
     if (req->close) {
-        stx_conn_pool_remove(conn_pool, req->conn);
+        node = stx_list_find(conn_pool, (void *)req->conn);
+        if (node) {
+            stx_list_remove(conn_pool, node);
+        }
         
         close(req->conn);
         free(req);
