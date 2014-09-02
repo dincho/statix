@@ -12,15 +12,11 @@
 #include <sys/time.h>
 #include "stx_log.h"
 
-void stx_log(stx_log_t *logger, stx_log_level_t level, const char *fmt, ...)
+void _stx_log(stx_log_t *logger, stx_log_level_t level, const char *fmt, ...)
 {    
     pthread_t t;
     va_list arg;
     struct timeval tv;
-    
-    if (logger->level < level) {
-        return;
-    }
     
     t = pthread_self();
     

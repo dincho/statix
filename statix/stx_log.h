@@ -25,6 +25,9 @@ typedef struct {
     int level;
 } stx_log_t;
 
-void stx_log(stx_log_t *logger, stx_log_level_t level, const char *fmt, ...);
+void _stx_log(stx_log_t *logger, stx_log_level_t level, const char *fmt, ...);
+
+#define stx_log(logger, log_level, fmt, ...) \
+    do { if (logger->level >= log_level) _stx_log(logger, log_level, fmt, ##__VA_ARGS__); } while (0)
 
 #endif
