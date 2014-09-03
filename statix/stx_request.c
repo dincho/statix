@@ -426,6 +426,8 @@ void stx_request_close(int queue, stx_request_t *req, stx_list_t *conn_pool)
     }
     
     if (req->close) {
+        stx_log(req->server->logger, STX_LOG_DEBUG, "Connection #%d closed", req->conn);
+
         node = stx_list_find(conn_pool, (void *)req->conn);
         if (node) {
             stx_list_remove(conn_pool, node);
@@ -434,6 +436,7 @@ void stx_request_close(int queue, stx_request_t *req, stx_list_t *conn_pool)
         close(req->conn);
         free(req);
     } else {
+        stx_log(req->server->logger, STX_LOG_DEBUG, "Request #%d reset", req->conn);
         stx_request_reset(req);
         stx_event(queue, req->conn, STX_EV_READ, req);
     }
