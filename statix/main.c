@@ -15,13 +15,21 @@
 #include "stx_log.h"
 #include "stx_server.h"
 #include "stx_listen.h"
+#include "stx_list.h"
+#include "stx_event_queue.h"
+#include "stx_master_worker.h"
 #include "stx_worker.h"
+#include "stx_accept.h"
 
 
 int main(int argc, const char * argv[])
 {
-    const int NB_THREADS = 2;
+    const int NB_THREADS = 1;
+
+    int queues[NB_THREADS];
     pthread_t threads[NB_THREADS];
+    stx_worker_t workers[NB_THREADS];
+    stx_list_t *conn_pools[NB_THREADS];
 
     stx_log_t logger;
     logger.level = STX_LOG_WARN;
@@ -50,24 +58,35 @@ int main(int argc, const char * argv[])
         return EXIT_FAILURE;
     }
     
-    if (NB_THREADS < 2) {
-        stx_worker(&server);
-        
-        return EXIT_SUCCESS;
-    }
-
     for (int i = 0; i < NB_THREADS; i++) {
-        if (pthread_create(&threads[i], NULL, stx_worker, &server)) {
+        workers[i].server = &server;
+        
+        if (NULL == (workers[i].conn_pool = stx_list_init())) {
+            stx_log(server.logger, STX_LOG_ERR, "Cannot create connection pool");
+            return EXIT_FAILURE;
+        }
+        
+        if ((workers[i].queue = stx_queue_create()) == -1) {
+            perror("stx_queue_create");
+            return EXIT_FAILURE;
+        }
+
+        if (pthread_create(&threads[i], NULL, stx_worker, &workers[i])) {
             perror("pthread_create");
             return EXIT_FAILURE;
         }
     }
+    
+    stx_master_worker(&server, NB_THREADS, &workers); //master loop
     
     for (int i = 0; i < NB_THREADS; i++) {
         if (pthread_join(threads[i], NULL)) {
             perror("pthread_join");
             return EXIT_FAILURE;
         }
+        
+        stx_queue_close(queues[i]);
+        stx_list_destroy(conn_pools[i]);
     }
 
     return EXIT_SUCCESS;
