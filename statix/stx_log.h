@@ -17,6 +17,7 @@ typedef enum {
     STX_LOG_WARN,
     STX_LOG_INFO,
     STX_LOG_DEBUG,
+    STX_LOG_NONE = -1,
 } stx_log_level_t;
 
 typedef struct {
