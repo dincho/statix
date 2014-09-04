@@ -77,7 +77,7 @@ int main(int argc, const char * argv[])
         }
     }
     
-    stx_master_worker(&server, NB_THREADS, &workers); //master loop
+    stx_master_worker(&server, NB_THREADS, (stx_worker_t *)&workers); //master loop
     
     for (int i = 0; i < NB_THREADS; i++) {
         if (pthread_join(threads[i], NULL)) {
