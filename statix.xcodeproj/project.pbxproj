@@ -49,7 +49,7 @@
 		5B83410B18D7821800BAF1D9 /* stx_request.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_request.c; sourceTree = "<group>"; };
 		5B83411018D78BA100BAF1D9 /* stx_listen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_listen.h; sourceTree = "<group>"; };
 		5B83411118D78BAC00BAF1D9 /* stx_listen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_listen.c; sourceTree = "<group>"; };
-		5B83411518D7A58700BAF1D9 /* stx_accept.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = stx_accept.h; path = ../stx_accept.h; sourceTree = "<group>"; };
+		5B83411518D7A58700BAF1D9 /* stx_accept.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_accept.h; sourceTree = "<group>"; };
 		5B83411618D7A59400BAF1D9 /* stx_accept.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_accept.c; sourceTree = "<group>"; };
 		5B83411818D7A95100BAF1D9 /* stx_log.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_log.c; sourceTree = "<group>"; };
 		5B83411A18D7A96100BAF1D9 /* stx_log.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_log.h; sourceTree = "<group>"; };
