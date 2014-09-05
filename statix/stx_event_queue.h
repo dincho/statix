@@ -42,23 +42,10 @@ struct timespec;
     #define STX_EVCTL_DISPATCH EV_DISPATCH
     #define STX_EVCTL_ENABLE EV_ENABLE
 
-
     #define STX_EVFILT_READ EVFILT_READ
     #define STX_EVFILT_WRITE EVFILT_WRITE
 
 #endif //end epoll/kqueue check
-
-typedef enum {
-    STX_EV_ACCEPT,
-    STX_EV_FIRST_READ,
-    STX_EV_READ,
-    STX_EV_WRITE
-} stx_ev_t;
-
-typedef struct {
-    stx_ev_t    event_type;
-    void		*data;
-} stx_event_data_t;
 
 int stx_queue_create();
 int stx_queue_close();
@@ -68,11 +55,7 @@ int stx_event_wait(int queue,
                   int nevents,
                   const struct timespec *timeout);
 
-int stx_event(int queue,
-                        int ident,
-                        stx_ev_t event,
-                        void *udata);
-
-
+int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
+                  const int op, const int filter, void *udata);
 
 #endif

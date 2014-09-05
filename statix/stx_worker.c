@@ -16,15 +16,13 @@
 #include "stx_write.h"
 #include "stx_log.h"
 
-
 static const int MAX_EVENTS = 1024; //x 32b = 32Kb
 
 void *stx_worker(void *arguments)
 {
-    int nev, ident, error = 0, eof = 0;
+    int nev, ident, error = 0, eof = 0, read;
     stx_event_t chlist[MAX_EVENTS];
     stx_event_t ev;
-    stx_event_data_t *ev_data;
     stx_request_t *request;
     stx_worker_t *arg = arguments;
     int8_t ret;
@@ -46,66 +44,59 @@ void *stx_worker(void *arguments)
             ev = chlist[i];
             
 #ifdef STX_EPOLL
-            ident = ev.data.fd;
-            ev_data = (stx_event_data_t *) ev.data.ptr;
             error = ev.events & EPOLLERR;
             eof = ev.events & EPOLLRDHUP;
+            read = (ev.events & STX_EVFILT_READ);
 #else
-            ident = (int) ev.ident;
-            ev_data = (stx_event_data_t *) ev.udata;
             error = ev.flags & EV_ERROR;
             eof = ev.flags & EV_EOF;
+            read = (ev.filter == STX_EVFILT_READ);
+            request = (stx_request_t *) ev.udata;
 #endif
             
-            request = (stx_request_t *) ev_data->data;
             ident = request->conn;
+
             if (error) {
                 stx_log(arg->server->logger, STX_LOG_ERR, "Event error: #%d", ident);
                 continue;
             }
             
-            switch (ev_data->event_type) {
-                case STX_EV_FIRST_READ:
-                    stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_FIRST_READ: #%d", ident);
-                    //note the missing break !
-                case STX_EV_READ:
-                    request->close = eof;
-                    
-                    stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_READ: #%d (eof: %d)", ident, eof);
-                    if (request->close) {
-                        free(ev_data);
+            if (read) {
+                request->close = eof;
+                
+                stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_READ: #%d (eof: %d)", ident, eof);
+                if (request->close) {
+                    stx_request_close(request, arg->conn_pool);
+                } else {
+                    ret = stx_read(arg->queue, request);
+                    if (-1 == ret) {
+                        stx_event_ctl(arg->queue, &ev, ident,
+                                      STX_EVCTL_ADD | STX_EVCTL_DISPATCH | STX_EVCTL_ENABLE,
+                                      STX_EVFILT_READ, request);
+                    } else if (0 == ret) {
                         stx_request_close(request, arg->conn_pool);
                     } else {
-                        ret = stx_read(arg->queue, request);
-                        if (-1 == ret) {
-                            stx_event(arg->queue, ident, STX_EV_READ, request);
-                        } else if (0 == ret) {
-                            free(ev_data);
-                            stx_request_close(request, arg->conn_pool);
-                        } else {
-                            stx_event(arg->queue, ident, STX_EV_WRITE, request);
-                        }
+                        stx_event_ctl(arg->queue, &ev, ident,
+                                      STX_EVCTL_MOD | STX_EVCTL_DISPATCH | STX_EVCTL_ENABLE,
+                                      STX_EVFILT_WRITE, request);
                     }
-                    
-                    break;
-                case STX_EV_WRITE:
-                    stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_WRITE: #%d", ident);
-                    if (-1 == stx_write(arg->queue, ev_data->data)) {
-                        stx_event(arg->queue, ident, STX_EV_WRITE, ev_data->data);
+                }
+            } else { //write
+                stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_WRITE: #%d", ident);
+                if (-1 == stx_write(arg->queue, request)) {
+                    stx_event_ctl(arg->queue, &ev, ident,
+                                  STX_EVCTL_MOD | STX_EVCTL_DISPATCH | STX_EVCTL_ENABLE,
+                                  STX_EVFILT_WRITE, request);
+                } else {
+                    if (request->close) {
+                        stx_request_close(request, arg->conn_pool);
                     } else {
-                        if (request->close) {
-                            free(ev_data);
-                            stx_request_close(request, arg->conn_pool);
-                        } else {
-                            stx_request_reset(request);
-                            stx_event(arg->queue, ident, STX_EV_READ, request);
-                        }
+                        stx_request_reset(request);
+                        stx_event_ctl(arg->queue, &ev, ident,
+                                      STX_EVCTL_ADD | STX_EVCTL_DISPATCH | STX_EVCTL_ENABLE,
+                                      STX_EVFILT_READ, request);
                     }
-                    
-                    break;
-                default:
-                    stx_log(arg->server->logger, STX_LOG_ERR, "Unknown event type: %d", ev_data->event_type);
-                    break;
+                }
             }
         }
     }

@@ -19,17 +19,20 @@ void stx_master_worker(stx_server_t *server,
                        int nb_threads,
                        stx_worker_t *workers)
 {
-    int master_queue, nev, ident, error = 0, thread_index = 0;
+    int master_queue, nev, ident, error = 0, thread_index = 0, read;
     stx_event_t chlist[MAX_EVENTS];
     stx_event_t ev;
-    stx_event_data_t *ev_data;
     
     if ((master_queue = stx_queue_create()) == -1) {
         perror("kqueue");
         return;
     }
     
-    stx_event(master_queue, server->sock, STX_EV_ACCEPT, NULL);
+    if (-1 == stx_event_ctl(master_queue, &ev, server->sock,
+                            STX_EVCTL_ADD, STX_EVFILT_READ, NULL)) {
+        perror("stx_event_ctl");
+        return;
+    }
     
     for (;;) {
         nev = stx_event_wait(master_queue, (stx_event_t *)&chlist, MAX_EVENTS, NULL);
@@ -46,12 +49,12 @@ void stx_master_worker(stx_server_t *server,
             
 #ifdef STX_EPOLL
             ident = ev.data.fd;
-            ev_data = (stx_event_data_t *) ev.data.ptr;
             error = ev.events & EPOLLERR;
+            read = (ev.events & STX_EVFILT_READ);
 #else
             ident = (int) ev.ident;
-            ev_data = (stx_event_data_t *) ev.udata;
             error = ev.flags & EV_ERROR;
+            read = (ev.filter == STX_EVFILT_READ);
 #endif
             
             if (error) {
@@ -59,18 +62,13 @@ void stx_master_worker(stx_server_t *server,
                 continue;
             }
             
-            switch (ev_data->event_type) {
-                case STX_EV_ACCEPT:
-                    thread_index = (thread_index + 1) % nb_threads;
-                    
-                    stx_log(server->logger, STX_LOG_DEBUG, "STX_EV_ACCEPT: #%d (backlog: %d)", ident, ev.data);
-                    stx_accept(workers[thread_index].queue,
-                               server,
-                               workers[thread_index].conn_pool);
-                    break;
-                default:
-                    stx_log(server->logger, STX_LOG_ERR, "Unknown event type: %d", ev_data->event_type);
-                    break;
+            if (read) {
+                thread_index = (thread_index + 1) % nb_threads;
+                
+                stx_log(server->logger, STX_LOG_DEBUG, "STX_EV_ACCEPT: #%d (backlog: %d)", ident, ev.data);
+                stx_accept(workers[thread_index].queue,
+                           server,
+                           workers[thread_index].conn_pool);
             }
         }
     }

@@ -32,49 +32,14 @@ int stx_event_wait(int queue,
     return epoll_wait(queue, eventlist, nevents, -1);
 }
 
-int stx_event(int queue, int ident, stx_ev_t event, void *udata)
+int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
+                  const int op, const int filter, void *udata)
 {
-    stx_event_t ev;
-    stx_event_data_t *data;
-    int ctl;
-    
-    data = malloc(sizeof(stx_event_data_t));
-    data->event_type = event;
-    data->data = udata;
-    
+    ev.events = filter;
     ev.data.fd = ident;
-    ev.data.ptr = data;
+    ev->data.ptr = udata;
     
-    switch (event) {
-        case STX_EV_ACCEPT:
-            ev.events = STX_EVFILT_READ;
-            ctl = STX_EVCTL_ADD;
-            break;
-        case STX_EV_FIRST_READ:
-            ev.events = STX_EVFILT_READ | STX_EVCTL_DISPATCH;
-            ctl = STX_EVCTL_ADD;
-            break;
-        case STX_EV_READ:
-            ev.events = STX_EVFILT_READ | STX_EVCTL_DISPATCH;
-            ctl = STX_EVCTL_MOD;
-            break;
-        case STX_EV_WRITE:
-            ev.events = STX_EVFILT_WRITE | STX_EVCTL_DISPATCH;
-            ctl = STX_EVCTL_MOD;
-            break;
-        default:
-            return -1;
-            break;
-    }
-    
-    if (-1 == epoll_ctl(queue, ctl, ident, &ev)) {
-        char err[100];
-        sprintf(err, "epoll_ctl (%d, %X, %d, %X)", queue, ctl, ident, ev.events);
-        perror(err);
-        return -1;
-    }
-    
-    return 0;
+    return epoll_ctl(queue, ctl, ident, ev);
 }
 
 #else //Kqueue
@@ -97,48 +62,12 @@ int stx_event_wait(int queue,
     return kevent(queue, 0, 0, eventlist, nevents, 0);
 }
 
-int stx_event(int queue, int ident, stx_ev_t event, void *udata)
+int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
+                  const int op, const int filter, void *udata)
 {
-    struct kevent ev;
-    stx_event_data_t *data;
+    EV_SET(ev, ident, filter, op, 0, 0, udata);
     
-    data = malloc(sizeof(stx_event_data_t));
-    data->event_type = event;
-    data->data = udata;
-    
-    ev.ident = ident;
-    ev.fflags = 0;
-    ev.data = 0;
-    ev.udata = data;
-    
-    switch (event) {
-        case STX_EV_ACCEPT:
-            ev.filter = STX_EVFILT_READ;
-            ev.flags = STX_EVCTL_ADD;
-            break;
-        case STX_EV_FIRST_READ:
-            ev.filter = STX_EVFILT_READ;
-            ev.flags = STX_EVCTL_ADD | STX_EVCTL_DISPATCH;
-            break;
-        case STX_EV_READ:
-            ev.filter = STX_EVFILT_READ;
-            ev.flags = STX_EVCTL_MOD | STX_EVCTL_DISPATCH | STX_EVCTL_ENABLE;
-            break;
-        case STX_EV_WRITE:
-            ev.filter = STX_EVFILT_WRITE;
-            ev.flags = STX_EVCTL_MOD | STX_EVCTL_DISPATCH | STX_EVCTL_ENABLE;
-            break;
-        default:
-            return -1;
-            break;
-    }
-    
-    if (-1 == kevent(queue, &ev, 1, NULL, 0, NULL)) {
-        perror("kevent");
-        return -1;
-    }
-    
-    return 0;
+    return kevent(queue, ev, 1, NULL, 0, NULL);
 }
 
 #endif //end epoll/kqueue check

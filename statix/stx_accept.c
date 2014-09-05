@@ -30,6 +30,7 @@ void stx_accept(int queue, stx_server_t *server, stx_list_t *conn_pool)
     char ip_str[INET_ADDRSTRLEN];
     int conn;
     stx_request_t *request;
+    stx_event_t ev;
     
     int cnt_old_connections = conn_pool->count;
     
@@ -78,8 +79,13 @@ void stx_accept(int queue, stx_server_t *server, stx_list_t *conn_pool)
         }
         
         stx_list_append(conn_pool, (void *)conn);
-
-        stx_event(queue, conn, STX_EV_FIRST_READ, request);
+        
+        stx_event_ctl(queue,
+                      &ev,
+                      conn,
+                      STX_EVCTL_ADD | STX_EVCTL_DISPATCH,
+                      STX_EVFILT_READ,
+                      request);
     }
     
     stx_log(server->logger, STX_LOG_INFO, "Accepted total of %d connections",
