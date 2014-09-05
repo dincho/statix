@@ -18,6 +18,28 @@
 #include "stx_log.h"
 #include "stx_event_queue.h"
 
+typedef enum {
+    st_start = 0,
+    st_uri_start,
+    st_uri,
+    st_param,
+    st_http_version,
+    st_first_major_digit,
+    st_major_digit,
+    st_first_minor_digit,
+    st_minor_digit,
+    st_crln,
+    st_done
+} stx_parse_state_t;
+
+typedef enum {
+    st_hd_name = 0,
+    st_hd_space_before_value,
+    st_hd_value,
+    st_hd_crln,
+    st_hd_done
+} stx_parse_hd_state_t;
+
 typedef struct {
     char  *ext;
     char  *type;
@@ -48,6 +70,8 @@ stx_request_t* stx_request_init(stx_server_t *server, int conn)
     return request;
 }
 
+
+
 void stx_request_reset(stx_request_t *request)
 {
     if (request->fd > 0) {
@@ -67,28 +91,11 @@ void stx_request_reset(stx_request_t *request)
     request->headers_start = NULL;
 }
 
-int stx_request_parse_line(stx_request_t *r)
+static inline int stx_request_parse_line(stx_request_t *r)
 {
     char   ch;
-    char  *p;
-    
-    typedef enum {
-        st_start = 0,
-        st_uri_start,
-        st_uri,
-        st_param,
-        st_http_version,
-        st_first_major_digit,
-        st_major_digit,
-        st_first_minor_digit,
-        st_minor_digit,
-        st_crln,
-        st_done
-    } state_t;
-    
-    state_t state = st_start;
-    
-    p = r->buff;
+    char  *p = r->buff;
+    stx_parse_state_t state = st_start;
     
     while (state != st_done) {
         ch = *p++;
@@ -228,57 +235,49 @@ int stx_request_parse_line(stx_request_t *r)
     return -1;
 }
 
-long stx_request_parse_headers_line(stx_request_t *r, char *name, char **value)
+static inline long stx_request_parse_headers_line(stx_request_t *r, char *name, char **value)
 {
-    typedef enum {
-        st_name = 0,
-        st_space_before_value,
-        st_value,
-        st_crln,
-        st_done
-    } state_t;
-
     char   ch;
     char  *p;
-    state_t state;
+    stx_parse_hd_state_t state;
     
-    state = st_name;
+    state = st_hd_name;
     p = name;
     
-    while (state != st_done) {
+    while (state != st_hd_done) {
         ch = *p++;
         
         switch (state) {
-            case st_name:
+            case st_hd_name:
                 if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || ch == '-') {
-                    state = st_name; //eat more
+                    state = st_hd_name; //eat more
                 } else if (ch == ':') {
                     *(p-1) = '\0';
-                    state = st_space_before_value;
+                    state = st_hd_space_before_value;
                 } else {
                     return -1;
                 }
 
                 break;
                 
-            case st_space_before_value:
+            case st_hd_space_before_value:
                 if (ch != ' ') {
                     return -1;
                 }
                 
                 *value = p;
-                state = st_value;
+                state = st_hd_value;
                 break;
 
-            case st_value:
+            case st_hd_value:
                 switch (ch) {
                     case '\n':
                         *(p-1) = '\0';
-                        state = st_done;
+                        state = st_hd_done;
                         break;
                     case '\r':
                         *(p-1) = '\0';
-                        state = st_crln;
+                        state = st_hd_crln;
                         break;
                     default:
                         //eat other chars as value
@@ -286,16 +285,16 @@ long stx_request_parse_headers_line(stx_request_t *r, char *name, char **value)
                 }
                 break;
 
-            case st_crln:
+            case st_hd_crln:
                 if (ch != '\n') {
                     return -1;
                 }
 
-                state = st_done;
+                state = st_hd_done;
                 break;
 
             //warning suspression
-            case st_done:
+            case st_hd_done:
                 break;
         }
     }
@@ -303,7 +302,7 @@ long stx_request_parse_headers_line(stx_request_t *r, char *name, char **value)
     return p - name;
 }
 
-int stx_request_parse_headers(stx_request_t *r)
+static inline int stx_request_parse_headers(stx_request_t *r)
 {
     char *buffer_end;
     char *name;
@@ -339,7 +338,7 @@ int stx_request_parse_headers(stx_request_t *r)
     return 0;
 }
 
-void stx_request_process_file(stx_request_t *r)
+static inline void stx_request_process_file(stx_request_t *r)
 {
     int fd;
     char filepath[255];
@@ -378,7 +377,7 @@ void stx_request_process_file(stx_request_t *r)
     r->fd = fd;
 }
 
-void stx_request_set_content_type(stx_request_t *r)
+static inline void stx_request_set_content_type(stx_request_t *r)
 {
     const int content_types_cnt = sizeof(content_types)/sizeof(stx_content_type_t);
     
@@ -396,7 +395,7 @@ void stx_request_set_content_type(stx_request_t *r)
     }
 }
 
-void stx_request_build_response(stx_request_t *r)
+static inline void stx_request_build_response(stx_request_t *r)
 {
     const char *body = "";
     
@@ -438,4 +437,13 @@ void stx_request_close(stx_request_t *req, stx_list_t *conn_pool)
     
     close(req->conn);
     free(req);
+}
+
+void stx_request_process(stx_request_t *req)
+{
+    stx_request_parse_line(req);
+    stx_request_parse_headers(req);
+    stx_request_set_content_type(req);
+    stx_request_process_file(req);
+    stx_request_build_response(req);
 }

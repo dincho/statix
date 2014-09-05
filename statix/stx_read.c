@@ -41,11 +41,7 @@ int8_t stx_read(int queue, stx_request_t *req)
         req->buffer_used += rx;
 
         //process request
-        stx_request_parse_line(req);
-        stx_request_parse_headers(req);
-        stx_request_set_content_type(req);
-        stx_request_process_file(req);
-        stx_request_build_response(req);
+        stx_request_process(req);
         
         stx_log(req->server->logger, STX_LOG_DEBUG, "rx: %d bytes", rx);
         stx_log(req->server->logger, STX_LOG_INFO, "GET %s", req->uri_start);
