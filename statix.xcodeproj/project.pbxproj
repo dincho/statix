@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5B38A9E819B7975200107CE4 /* stx_master_worker.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B38A9E719B7975200107CE4 /* stx_master_worker.c */; };
+		5B38A9EC19B8926500107CE4 /* stx_sendfile.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B38A9EB19B8926500107CE4 /* stx_sendfile.c */; };
 		5B4B90EB190ACB120015AF8F /* stx_server.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B4B90EA190ACB120015AF8F /* stx_server.c */; };
 		5B4B90EC190ADA1A0015AF8F /* index.html in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5BB8A4EC18D500FE00682D93 /* index.html */; };
 		5B4B90ED190ADA1A0015AF8F /* 100b.html in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5BB5E1F51909B2840024C6ED /* 100b.html */; };
@@ -42,6 +43,8 @@
 /* Begin PBXFileReference section */
 		5B38A9E619B7974900107CE4 /* stx_master_worker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_master_worker.h; sourceTree = "<group>"; };
 		5B38A9E719B7975200107CE4 /* stx_master_worker.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_master_worker.c; sourceTree = "<group>"; };
+		5B38A9EA19B8925C00107CE4 /* stx_sendfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_sendfile.h; sourceTree = "<group>"; };
+		5B38A9EB19B8926500107CE4 /* stx_sendfile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_sendfile.c; sourceTree = "<group>"; };
 		5B3BCAD618CCEC2F00286ADB /* stx_request.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_request.h; sourceTree = "<group>"; };
 		5B4B90E9190ACB080015AF8F /* stx_server.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_server.h; sourceTree = "<group>"; };
 		5B4B90EA190ACB120015AF8F /* stx_server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_server.c; sourceTree = "<group>"; };
@@ -127,6 +130,8 @@
 				5BA1DB9A19B3C72200E838BF /* stx_list.h */,
 				5BA1DB9819B3C71B00E838BF /* stx_list.c */,
 				5B5C9D9119B213E200322E67 /* tune.sh */,
+				5B38A9EA19B8925C00107CE4 /* stx_sendfile.h */,
+				5B38A9EB19B8926500107CE4 /* stx_sendfile.c */,
 			);
 			path = statix;
 			sourceTree = "<group>";
@@ -184,6 +189,7 @@
 			files = (
 				5B9D3B2D18C132BA00A88225 /* main.c in Sources */,
 				5BA1DB9919B3C71B00E838BF /* stx_list.c in Sources */,
+				5B38A9EC19B8926500107CE4 /* stx_sendfile.c in Sources */,
 				5BB3E9CA19B1E9EC0021C04C /* stx_worker.c in Sources */,
 				5B38A9E819B7975200107CE4 /* stx_master_worker.c in Sources */,
 				5B83410C18D7821800BAF1D9 /* stx_request.c in Sources */,
