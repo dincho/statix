@@ -43,6 +43,7 @@
 /* Begin PBXFileReference section */
 		5B38A9E619B7974900107CE4 /* stx_master_worker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_master_worker.h; sourceTree = "<group>"; };
 		5B38A9E719B7975200107CE4 /* stx_master_worker.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_master_worker.c; sourceTree = "<group>"; };
+		5B38A9E919B877E100107CE4 /* makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
 		5B38A9EA19B8925C00107CE4 /* stx_sendfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_sendfile.h; sourceTree = "<group>"; };
 		5B38A9EB19B8926500107CE4 /* stx_sendfile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_sendfile.c; sourceTree = "<group>"; };
 		5B3BCAD618CCEC2F00286ADB /* stx_request.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_request.h; sourceTree = "<group>"; };
@@ -130,6 +131,7 @@
 				5BA1DB9A19B3C72200E838BF /* stx_list.h */,
 				5BA1DB9819B3C71B00E838BF /* stx_list.c */,
 				5B5C9D9119B213E200322E67 /* tune.sh */,
+				5B38A9E919B877E100107CE4 /* makefile */,
 				5B38A9EA19B8925C00107CE4 /* stx_sendfile.h */,
 				5B38A9EB19B8926500107CE4 /* stx_sendfile.c */,
 			);
