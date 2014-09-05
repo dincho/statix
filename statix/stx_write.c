@@ -8,52 +8,52 @@
 
 #include <sys/socket.h> //recv, send
 #include <unistd.h> //read, close
+
 #include <string.h>
 #include <errno.h>
+
 #include "stx_write.h"
+#include "stx_sendfile.h"
 #include "stx_event_queue.h"
 
-void stx_write(int queue, stx_request_t *req)
+
+int8_t stx_write(int queue, stx_request_t *req)
 {
-    struct sf_hdtr headers = {NULL};
-    struct iovec ivh;
     ssize_t tx;
     off_t sendfile_tx = 0; //sendfile sent bytes, it's in/out param
     int sf_ret;
-
+    char *headers = NULL;
+    size_t headers_len = 0;
+    
     if (req->fd > 0) {
         //send the header only once
         if (req->buffer_offset == 0) {
-            ivh.iov_base = req->buff;
-            ivh.iov_len = req->buffer_used;
-            headers.headers = &ivh;
-            headers.hdr_cnt = 1;
+            headers = req->buff;
+            headers_len = req->buffer_used;
         }
         
-        sf_ret = sendfile(req->fd, req->conn, req->buffer_offset, &sendfile_tx, &headers, 0);
+        sf_ret = stx_sendfile(req->fd,
+                              req->conn,
+                              &req->buffer_offset,
+                              req->content_length,
+                              &sendfile_tx,
+                              headers,
+                              headers_len);
+
         stx_log(req->server->logger, STX_LOG_DEBUG,
                 "[sendfile] offset: %d, tx: %d bytes",
                 req->buffer_offset,
                 sendfile_tx);
 
-        if (sf_ret) {
+        if (-1 == sf_ret) {
             if (errno == EAGAIN) {
                 stx_log(req->server->logger, STX_LOG_WARN, "[sendfile] EAGAIN/EWOULDBLOCK conn:#%d, fd:#%d", req->conn,  req->fd);
-                
-                //deduct headers
-                if (req->buffer_offset == 0) {
-                    req->buffer_offset -= req->buffer_used;
-                }
 
-                req->buffer_offset += sendfile_tx;
-                stx_event(queue, req->conn, STX_EV_WRITE, req);
-                return;
+                return -1;
             } else {
                 perror("sendfile");
             }
         }
-        
-        
     } else {
         tx = send(req->conn, req->buff, req->buffer_used, 0);
         if(-1 == tx) {
@@ -63,5 +63,5 @@ void stx_write(int queue, stx_request_t *req)
         stx_log(req->server->logger, STX_LOG_DEBUG, "tx: %d bytes", tx);
     }
     
-    stx_event(queue, req->conn, STX_EV_CLOSE, req);
+    return 0;
 }

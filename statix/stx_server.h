@@ -10,14 +10,13 @@
 #define statix_stx_server_h
 
 #include "stx_log.h"
-#include "limits.h"
 
 typedef struct {
     stx_log_t   *logger;
     int         port;
     int         backlog;
-    char        webroot[PATH_MAX];
-    char        index[NAME_MAX];
+    char        webroot[255];
+    char        index[255];
     int         sock;
     int         max_connections;
 } stx_server_t;

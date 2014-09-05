@@ -19,7 +19,7 @@ void stx_master_worker(stx_server_t *server,
                        int nb_threads,
                        stx_worker_t *workers)
 {
-    int master_queue, nev, thread_index = 0;
+    int master_queue, nev, ident, error = 0, thread_index = 0;
     stx_event_t chlist[MAX_EVENTS];
     stx_event_t ev;
     stx_event_data_t *ev_data;
@@ -44,18 +44,26 @@ void stx_master_worker(stx_server_t *server,
         for (int i = 0; i < nev; i++) {
             ev = chlist[i];
             
-            if (ev.flags & EV_ERROR) {
-                stx_log(server->logger, STX_LOG_ERR, "Event error: #%d", ev.ident);
+#ifdef STX_EPOLL
+            ident = ev.data.fd;
+            ev_data = (stx_event_data_t *) ev.data.ptr;
+            error = ev.events & EPOLLERR;
+#else
+            ident = (int) ev.ident;
+            ev_data = (stx_event_data_t *) ev.udata;
+            error = ev.flags & EV_ERROR;
+#endif
+            
+            if (error) {
+                stx_log(server->logger, STX_LOG_ERR, "Event error: #%d", ident);
                 continue;
             }
-            
-            ev_data = (stx_event_data_t *) ev.udata;
             
             switch (ev_data->event_type) {
                 case STX_EV_ACCEPT:
                     thread_index = (thread_index + 1) % nb_threads;
                     
-                    stx_log(server->logger, STX_LOG_DEBUG, "STX_EV_ACCEPT: #%d", ev.ident);
+                    stx_log(server->logger, STX_LOG_DEBUG, "STX_EV_ACCEPT: #%d (backlog: %d)", ident, ev.data);
                     stx_accept(workers[thread_index].queue,
                                server,
                                workers[thread_index].conn_pool);

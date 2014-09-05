@@ -9,10 +9,10 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <strings.h> //strncasecmp in linux
 #include <fcntl.h> //O_RDONLY
 #include <sys/stat.h>
 #include <errno.h>
-#include <limits.h>
 
 #include "stx_request.h"
 #include "stx_log.h"
@@ -50,6 +50,10 @@ stx_request_t* stx_request_init(stx_server_t *server, int conn)
 
 void stx_request_reset(stx_request_t *request)
 {
+    if (request->fd > 0) {
+        close(request->fd);
+    }
+
     request->close = 0;
     request->content_length = 0;
     request->fd = 0;
@@ -338,7 +342,7 @@ int stx_request_parse_headers(stx_request_t *r)
 void stx_request_process_file(stx_request_t *r)
 {
     int fd;
-    char filepath[PATH_MAX];
+    char filepath[255];
     struct stat sb;
     
     strcpy(filepath, r->server->webroot);
@@ -417,7 +421,7 @@ void stx_request_build_response(stx_request_t *r)
             body);
 }
 
-void stx_request_close(int queue, stx_request_t *req, stx_list_t *conn_pool)
+void stx_request_close(stx_request_t *req, stx_list_t *conn_pool)
 {
     stx_list_node_t *node;
     
@@ -425,19 +429,13 @@ void stx_request_close(int queue, stx_request_t *req, stx_list_t *conn_pool)
         close(req->fd);
     }
     
-    if (req->close) {
-        stx_log(req->server->logger, STX_LOG_DEBUG, "Connection #%d closed", req->conn);
+    stx_log(req->server->logger, STX_LOG_DEBUG, "Connection #%d closed", req->conn);
 
-        node = stx_list_find(conn_pool, (void *)req->conn);
-        if (node) {
-            stx_list_remove(conn_pool, node);
-        }
-        
-        close(req->conn);
-        free(req);
-    } else {
-        stx_log(req->server->logger, STX_LOG_DEBUG, "Request #%d reset", req->conn);
-        stx_request_reset(req);
-        stx_event(queue, req->conn, STX_EV_READ, req);
+    node = stx_list_find(conn_pool, (void *)req->conn);
+    if (node) {
+        stx_list_remove(conn_pool, node);
     }
+    
+    close(req->conn);
+    free(req);
 }

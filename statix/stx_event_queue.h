@@ -9,16 +9,51 @@
 #ifndef statix_stx_event_queue_h
 #define statix_stx_event_queue_h
 
-#include <sys/event.h>
+#include <time.h>
+
+struct timespec;
+
+#ifdef __linux //Epoll
+
+    #define STX_EPOLL //use epoll
+
+    #include <sys/epoll.h>
+
+    typedef struct epoll_event stx_event_t;
+
+    #define STX_EVCTL_ADD EPOLL_CTL_ADD
+    #define STX_EVCTL_MOD EPOLL_CTL_MOD
+//    #define STX_EVCTL_ONESHOT EPOLLET
+    #define STX_EVCTL_DISPATCH EPOLLET | EPOLLONESHOT
+    #define STX_EVCTL_ENABLE 0x00 //each event modification rearm it
+
+    #define STX_EVFILT_READ EPOLLIN
+    #define STX_EVFILT_WRITE EPOLLOUT
+
+#else //Kqueue
+
+    #include <sys/event.h>
+
+    typedef struct kevent stx_event_t;
+
+    #define STX_EVCTL_ADD EV_ADD
+    #define STX_EVCTL_MOD EV_ADD
+    #define STX_EVCTL_ONESHOT EV_ONESHOT
+    #define STX_EVCTL_DISPATCH EV_DISPATCH
+    #define STX_EVCTL_ENABLE EV_ENABLE
+
+
+    #define STX_EVFILT_READ EVFILT_READ
+    #define STX_EVFILT_WRITE EVFILT_WRITE
+
+#endif //end epoll/kqueue check
 
 typedef enum {
     STX_EV_ACCEPT,
+    STX_EV_FIRST_READ,
     STX_EV_READ,
-    STX_EV_WRITE,
-    STX_EV_CLOSE
+    STX_EV_WRITE
 } stx_ev_t;
-
-typedef struct kevent stx_event_t;
 
 typedef struct {
     stx_ev_t    event_type;
@@ -29,19 +64,15 @@ int stx_queue_create();
 int stx_queue_close();
 
 int stx_event_wait(int queue,
-                          struct kevent *eventlist,
-                          int nevents,
-                          const struct timespec *timeout);
+                  stx_event_t *eventlist,
+                  int nevents,
+                  const struct timespec *timeout);
 
 int stx_event(int queue,
                         int ident,
                         stx_ev_t event,
                         void *udata);
 
-#define STX_EVCTL_ADD EV_ADD
-#define STX_EVCTL_ONESHOT EV_ONESHOT
 
-#define STX_EVFILT_READ EVFILT_READ
-#define STX_EVFILT_WRITE EVFILT_WRITE
 
 #endif

@@ -103,7 +103,7 @@ void stx_request_reset(stx_request_t *request);
 int stx_request_parse_line(stx_request_t *);
 long stx_request_parse_headers_line(stx_request_t *, char *name, char **value);
 int stx_request_parse_headers(stx_request_t *);
-void stx_request_close(int queue, stx_request_t *, stx_list_t *conn_pool);
+void stx_request_close(stx_request_t *, stx_list_t *conn_pool);
 void stx_request_process_file(stx_request_t *r);
 void stx_request_set_content_type(stx_request_t *);
 void stx_request_build_response(stx_request_t *);

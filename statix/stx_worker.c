@@ -21,12 +21,13 @@ static const int MAX_EVENTS = 1024; //x 32b = 32Kb
 
 void *stx_worker(void *arguments)
 {
-    int nev;
+    int nev, ident, error = 0, eof = 0;
     stx_event_t chlist[MAX_EVENTS];
     stx_event_t ev;
     stx_event_data_t *ev_data;
     stx_request_t *request;
     stx_worker_t *arg = arguments;
+    int8_t ret;
     
     stx_log(arg->server->logger, STX_LOG_DEBUG,
             "Started new worker thread - queue: %d, pool: %p", arg->queue, arg->conn_pool);
@@ -44,41 +45,67 @@ void *stx_worker(void *arguments)
         for (int i = 0; i < nev; i++) {
             ev = chlist[i];
             
-            if (ev.flags & EV_ERROR) {
-                stx_log(arg->server->logger, STX_LOG_ERR, "Event error: #%d", ev.ident);
+#ifdef STX_EPOLL
+            ident = ev.data.fd;
+            ev_data = (stx_event_data_t *) ev.data.ptr;
+            error = ev.events & EPOLLERR;
+            eof = ev.events & EPOLLRDHUP;
+#else
+            ident = (int) ev.ident;
+            ev_data = (stx_event_data_t *) ev.udata;
+            error = ev.flags & EV_ERROR;
+            eof = ev.flags & EV_EOF;
+#endif
+            
+            request = (stx_request_t *) ev_data->data;
+            ident = request->conn;
+            if (error) {
+                stx_log(arg->server->logger, STX_LOG_ERR, "Event error: #%d", ident);
                 continue;
             }
-
-            ev_data = (stx_event_data_t *) ev.udata;
             
             switch (ev_data->event_type) {
+                case STX_EV_FIRST_READ:
+                    stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_FIRST_READ: #%d", ident);
+                    //note the missing break !
                 case STX_EV_READ:
-                    stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_READ: #%d", ev.ident);
-                    request = (stx_request_t *) ev_data->data;
-                    request->close = ev.flags & EV_EOF;
-
+                    request->close = eof;
+                    
+                    stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_READ: #%d (eof: %d)", ident, eof);
                     if (request->close) {
-                        stx_request_close(arg->queue, request, arg->conn_pool);
+                        free(ev_data);
+                        stx_request_close(request, arg->conn_pool);
                     } else {
-                        stx_read(arg->queue, request);
+                        ret = stx_read(arg->queue, request);
+                        if (-1 == ret) {
+                            stx_event(arg->queue, ident, STX_EV_READ, request);
+                        } else if (0 == ret) {
+                            free(ev_data);
+                            stx_request_close(request, arg->conn_pool);
+                        } else {
+                            stx_event(arg->queue, ident, STX_EV_WRITE, request);
+                        }
                     }
                     
                     break;
                 case STX_EV_WRITE:
-                    stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_WRITE: #%d", ev.ident);
-                    stx_write(arg->queue, ev_data->data); //request
-                    break;
-                case STX_EV_CLOSE:
-                    stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_CLOSE: #%d", ev.ident);
-                    stx_request_close(arg->queue, ev_data->data, arg->conn_pool); //request
+                    stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_WRITE: #%d", ident);
+                    if (-1 == stx_write(arg->queue, ev_data->data)) {
+                        stx_event(arg->queue, ident, STX_EV_WRITE, ev_data->data);
+                    } else {
+                        if (request->close) {
+                            free(ev_data);
+                            stx_request_close(request, arg->conn_pool);
+                        } else {
+                            stx_request_reset(request);
+                            stx_event(arg->queue, ident, STX_EV_READ, request);
+                        }
+                    }
+                    
                     break;
                 default:
                     stx_log(arg->server->logger, STX_LOG_ERR, "Unknown event type: %d", ev_data->event_type);
                     break;
-            }
-            
-            if (ev.flags & STX_EVCTL_ONESHOT) {
-                free(ev_data);
             }
         }
     }

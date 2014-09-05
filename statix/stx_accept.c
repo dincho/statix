@@ -31,6 +31,8 @@ void stx_accept(int queue, stx_server_t *server, stx_list_t *conn_pool)
     int conn;
     stx_request_t *request;
     
+    int cnt_old_connections = conn_pool->count;
+    
     for (;;) {
         conn = accept(server->sock, &addr, &addr_size);
         if (conn < 0) {
@@ -77,6 +79,9 @@ void stx_accept(int queue, stx_server_t *server, stx_list_t *conn_pool)
         
         stx_list_append(conn_pool, (void *)conn);
 
-        stx_event(queue, conn, STX_EV_READ, request);
+        stx_event(queue, conn, STX_EV_FIRST_READ, request);
     }
+    
+    stx_log(server->logger, STX_LOG_INFO, "Accepted total of %d connections",
+            conn_pool->count - cnt_old_connections);
 }

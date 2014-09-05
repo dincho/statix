@@ -15,7 +15,13 @@
 #include "stx_log.h"
 #include "stx_event_queue.h"
 
-void stx_read(int queue, stx_request_t *req)
+/*
+ * returns 1 when read is done
+ * returns 0 if error or EOF (so connection can be closed)
+ * returns -1 if EAGAIN
+ */
+
+int8_t stx_read(int queue, stx_request_t *req)
 {
     ssize_t rx, buff_sz;
     
@@ -26,9 +32,7 @@ void stx_read(int queue, stx_request_t *req)
         stx_log(req->server->logger, STX_LOG_ERR, "Request too long");
         req->status = STX_STATUS_URI_TOO_LONG;
 
-        stx_event(queue, req->conn, STX_EV_WRITE, req);
-        
-        return;
+        return 1;
     }
 
     rx = recv(req->conn, req->buff + req->buffer_used, buff_sz, 0);
@@ -42,26 +46,35 @@ void stx_read(int queue, stx_request_t *req)
         stx_request_set_content_type(req);
         stx_request_process_file(req);
         stx_request_build_response(req);
-        stx_event(queue, req->conn, STX_EV_WRITE, req);
         
         stx_log(req->server->logger, STX_LOG_DEBUG, "rx: %d bytes", rx);
         stx_log(req->server->logger, STX_LOG_INFO, "GET %s", req->uri_start);
+
+        return 1;
     }
 
     //connection closed by peer
     if (rx == 0) {
-        stx_log(req->server->logger, STX_LOG_ERR, "Connection closed by peer");
+        stx_log(req->server->logger, STX_LOG_INFO, "Connection closed by peer");
         req->close = 1;
-        stx_event(queue, req->conn, STX_EV_CLOSE, req);
+        
+        return 0;
     }
     
     if (rx == -1) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            stx_log(req->server->logger, STX_LOG_WARN, "EAGAIN/EWOULDBLOCK while reading #%d", req->conn);
-            stx_event(queue, req->conn, STX_EV_READ, req);
+            stx_log(req->server->logger,
+                    STX_LOG_WARN,
+                    "EAGAIN/EWOULDBLOCK while reading #%d",
+                    req->conn);
+            
+            return -1;
         } else {
             perror("recv");
-            stx_event(queue, req->conn, STX_EV_CLOSE, req);
+            
+            return 0;
         }
     }
+    
+    return 0;
 }
