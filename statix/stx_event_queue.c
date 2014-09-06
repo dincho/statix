@@ -12,6 +12,12 @@
 
 #include "stx_event_queue.h"
 
+extern int stx_event_wait(int queue, stx_event_t *eventlist,
+                          int nevents, const struct timespec *timeout);
+
+extern int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
+                         const int op, const int filter, void *udata);
+
 #ifdef STX_EPOLL //Epoll
 
 int stx_queue_create()
@@ -52,22 +58,6 @@ int stx_queue_create()
 int stx_queue_close(int queue)
 {
     return close(queue);
-}
-
-int stx_event_wait(int queue,
-                   stx_event_t *eventlist,
-                   int nevents,
-                   const struct timespec *timeout)
-{
-    return kevent(queue, 0, 0, eventlist, nevents, 0);
-}
-
-int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
-                  const int op, const int filter, void *udata)
-{
-    EV_SET(ev, ident, filter, op, 0, 0, udata);
-    
-    return kevent(queue, ev, 1, NULL, 0, NULL);
 }
 
 #endif //end epoll/kqueue check

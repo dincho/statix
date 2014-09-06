@@ -45,17 +45,23 @@ struct timespec;
     #define STX_EVFILT_READ EVFILT_READ
     #define STX_EVFILT_WRITE EVFILT_WRITE
 
+    inline int stx_event_wait(int queue, stx_event_t *eventlist,
+                              int nevents, const struct timespec *timeout)
+    {
+        return kevent(queue, 0, 0, eventlist, nevents, 0);
+    }
+
+    inline int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
+                             const int op, const int filter, void *udata)
+    {
+        EV_SET(ev, ident, filter, op, 0, 0, udata);
+        
+        return kevent(queue, ev, 1, NULL, 0, NULL);
+    }
+
 #endif //end epoll/kqueue check
 
 int stx_queue_create();
 int stx_queue_close();
-
-int stx_event_wait(int queue,
-                  stx_event_t *eventlist,
-                  int nevents,
-                  const struct timespec *timeout);
-
-int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
-                  const int op, const int filter, void *udata);
 
 #endif
