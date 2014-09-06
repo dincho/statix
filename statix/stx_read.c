@@ -27,10 +27,10 @@ int8_t stx_read(int queue, stx_request_t *req)
     
     buff_sz = sizeof(req->buff) - req->buffer_used;
 
-    //this should set request status and schedule write ev
+    //request buffer is too small, drop the request
     if (buff_sz == 0) {
-        stx_log(req->server->logger, STX_LOG_ERR, "Request too long");
-        req->status = STX_STATUS_URI_TOO_LONG;
+        stx_log(req->server->logger, STX_LOG_ERR, "Request too big");
+        req->status = STX_STATUS_BAD_REQ;
 
         return 1;
     }
