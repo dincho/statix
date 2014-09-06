@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include <strings.h> //strncasecmp in linux
 #include <fcntl.h> //O_RDONLY
 #include <sys/stat.h>
 #include <errno.h>
@@ -319,11 +318,8 @@ static inline int stx_request_parse_headers(stx_request_t *r)
             return -1;
         }
         
-        if (0 == strcasecmp(name, "connection")) {
-            if (0 == strcasecmp(value, "close")) {
-                r->close = 1;
-            }
-            
+        if (name[0] == 'C' && name[1] == 'o' && value[0] == 'c') {
+            r->close = 1;
             //currently only connection header is supported so don't go further
             return 0;
         }
