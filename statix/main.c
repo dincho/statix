@@ -60,7 +60,8 @@ int main(int argc, const char * argv[])
     
     for (int i = 0; i < NB_THREADS; i++) {
         workers[i].server = &server;
-        
+        workers[i].id = i+1;
+
         if (NULL == (workers[i].conn_pool = stx_list_init())) {
             stx_log(server.logger, STX_LOG_ERR, "Cannot create connection pool");
             return EXIT_FAILURE;

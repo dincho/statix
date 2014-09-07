@@ -48,7 +48,7 @@ struct timespec;
     inline int stx_event_wait(int queue, stx_event_t *eventlist,
                               int nevents, const struct timespec *timeout)
     {
-        return kevent(queue, 0, 0, eventlist, nevents, 0);
+        return kevent(queue, 0, 0, eventlist, nevents, timeout);
     }
 
     inline int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,

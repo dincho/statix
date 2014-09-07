@@ -63,6 +63,7 @@ stx_request_t* stx_request_init(stx_server_t *server, int conn)
     
     request->server = server;
     request->conn = conn;
+    request->fd = 0;
     
     stx_request_reset(request);
 

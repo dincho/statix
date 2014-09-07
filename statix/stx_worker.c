@@ -27,17 +27,30 @@ void *stx_worker(void *arguments)
     stx_worker_t *arg = arguments;
     int8_t ret;
     
+    int read_ev = 0, write_ev = 0;
+    
+    struct timespec tmout = {
+        5,     /* block for 5 seconds at most */
+        0       /* nanoseconds */
+    };
+    
     stx_log(arg->server->logger, STX_LOG_DEBUG,
             "Started new worker thread - queue: %d, pool: %p", arg->queue, arg->conn_pool);
     
     for (;;) {
-        nev = stx_event_wait(arg->queue, (stx_event_t *)&chlist, MAX_EVENTS, NULL);
+        nev = stx_event_wait(arg->queue, (stx_event_t *)&chlist, MAX_EVENTS, &tmout);
         
         if (nev == -1) {
             perror("stx_event_wait()");
             if (errno != EINTR) {
                 break;
             }
+        }
+        
+        if (nev == 0) { //handle timeout
+            stx_log(arg->server->logger, STX_LOG_WARN,
+                    "Events: %d %d %d", arg->id, read_ev, write_ev);
+            continue;
         }
         
         for (int i = 0; i < nev; i++) {
@@ -62,6 +75,7 @@ void *stx_worker(void *arguments)
             }
             
             if (read) {
+                read_ev++;
                 request->close = eof;
                 
                 stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_READ: #%d (eof: %d)", ident, eof);
@@ -82,6 +96,7 @@ void *stx_worker(void *arguments)
                     }
                 }
             } else { //write
+                write_ev++;
                 stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_WRITE: #%d", ident);
                 if (-1 == stx_write(arg->queue, request)) {
                     stx_event_ctl(arg->queue, &ev, ident,

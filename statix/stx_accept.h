@@ -11,7 +11,8 @@
 
 #include "stx_server.h"
 #include "stx_list.h"
+#include "stx_worker.h"
 
-void stx_accept(int, stx_server_t *, stx_list_t *conn_pool);
+void stx_accept(stx_server_t *server, stx_worker_t *workers, const int nb_workers, int *index);
 
 #endif

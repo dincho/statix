@@ -14,7 +14,7 @@
 #include "stx_worker.h"
 
 void stx_master_worker(stx_server_t *server,
-                       int nb_threads,
+                       const int nb_threads,
                        stx_worker_t *workers);
 
 #endif

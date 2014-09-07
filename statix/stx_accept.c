@@ -22,7 +22,7 @@
 #include "stx_log.h"
 #include "stx_event_queue.h"
 
-void stx_accept(int queue, stx_server_t *server, stx_list_t *conn_pool)
+void stx_accept(stx_server_t *server, stx_worker_t *workers, const int nb_workers, int *idx)
 {
     struct sockaddr addr;
     socklen_t addr_size = sizeof(struct sockaddr);
@@ -31,8 +31,7 @@ void stx_accept(int queue, stx_server_t *server, stx_list_t *conn_pool)
     int conn;
     stx_request_t *request;
     stx_event_t ev;
-    
-    int cnt_old_connections = conn_pool->count;
+    stx_worker_t *worker;
     
     for (;;) {
         conn = accept(server->sock, &addr, &addr_size);
@@ -43,8 +42,12 @@ void stx_accept(int queue, stx_server_t *server, stx_list_t *conn_pool)
             
             break;
         }
-
-        if (conn_pool->count >= server->max_connections) {
+        
+        *idx = (*idx + 1) % nb_workers;
+        worker = &workers[*idx];
+        
+        
+        if (worker->conn_pool->count >= server->max_connections) {
             stx_log(server->logger,
                     STX_LOG_ERR,
                     "Connection limit %d reached, closing #%d",
@@ -78,16 +81,13 @@ void stx_accept(int queue, stx_server_t *server, stx_list_t *conn_pool)
             continue;
         }
         
-        stx_list_append(conn_pool, (void *)conn);
+        stx_list_append(worker->conn_pool, (void *)conn);
         
-        stx_event_ctl(queue,
+        stx_event_ctl(worker->queue,
                       &ev,
                       conn,
                       STX_EVCTL_ADD | STX_EVCTL_DISPATCH,
                       STX_EVFILT_READ,
                       request);
     }
-    
-    stx_log(server->logger, STX_LOG_INFO, "Accepted total of %d connections",
-            conn_pool->count - cnt_old_connections);
 }
