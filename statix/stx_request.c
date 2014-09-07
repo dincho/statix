@@ -417,20 +417,13 @@ static inline void stx_request_build_response(stx_request_t *r)
             body);
 }
 
-void stx_request_close(stx_request_t *req, stx_list_t *conn_pool)
-{
-    stx_list_node_t *node;
-    
+void stx_request_close(stx_request_t *req)
+{    
     if (req->fd > 0) {
         close(req->fd);
     }
     
     stx_log(req->server->logger, STX_LOG_DEBUG, "Connection #%d closed", req->conn);
-
-    node = stx_list_find(conn_pool, (void *)req->conn);
-    if (node) {
-        stx_list_remove(conn_pool, node);
-    }
     
     close(req->conn);
     free(req);

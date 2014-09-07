@@ -23,6 +23,7 @@
 		5BB3E9CA19B1E9EC0021C04C /* stx_worker.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BB3E9C919B1E9EC0021C04C /* stx_worker.c */; };
 		5BB5E1F41909A0230024C6ED /* stx_write.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BB5E1F31909A0230024C6ED /* stx_write.c */; };
 		5BF1667F190CE9C800DCF42C /* 10K.html in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5BF1667E190CE93F00DCF42C /* 10K.html */; };
+		5BFE218319BC998F00B714C8 /* stx_hashmap.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BFE218219BC998F00B714C8 /* stx_hashmap.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -72,6 +73,8 @@
 		5BB5E1F51909B2840024C6ED /* 100b.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = 100b.html; sourceTree = "<group>"; };
 		5BB8A4EC18D500FE00682D93 /* index.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		5BF1667E190CE93F00DCF42C /* 10K.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = 10K.html; sourceTree = "<group>"; };
+		5BFE218219BC998F00B714C8 /* stx_hashmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_hashmap.c; sourceTree = "<group>"; };
+		5BFE218419BC999600B714C8 /* stx_hashmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_hashmap.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -134,6 +137,8 @@
 				5B38A9E919B877E100107CE4 /* makefile */,
 				5B38A9EA19B8925C00107CE4 /* stx_sendfile.h */,
 				5B38A9EB19B8926500107CE4 /* stx_sendfile.c */,
+				5BFE218419BC999600B714C8 /* stx_hashmap.h */,
+				5BFE218219BC998F00B714C8 /* stx_hashmap.c */,
 			);
 			path = statix;
 			sourceTree = "<group>";
@@ -193,6 +198,7 @@
 				5BA1DB9919B3C71B00E838BF /* stx_list.c in Sources */,
 				5B38A9EC19B8926500107CE4 /* stx_sendfile.c in Sources */,
 				5BB3E9CA19B1E9EC0021C04C /* stx_worker.c in Sources */,
+				5BFE218319BC998F00B714C8 /* stx_hashmap.c in Sources */,
 				5B38A9E819B7975200107CE4 /* stx_master_worker.c in Sources */,
 				5B83410C18D7821800BAF1D9 /* stx_request.c in Sources */,
 				5B83411218D78BAC00BAF1D9 /* stx_listen.c in Sources */,

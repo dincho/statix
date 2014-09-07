@@ -29,7 +29,6 @@ void stx_accept(stx_server_t *server, stx_worker_t *workers, const int nb_worker
     struct sockaddr_in *sin;
     char ip_str[INET_ADDRSTRLEN];
     int conn;
-    stx_request_t *request;
     stx_event_t ev;
     stx_worker_t *worker;
     
@@ -46,19 +45,6 @@ void stx_accept(stx_server_t *server, stx_worker_t *workers, const int nb_worker
         *idx = (*idx + 1) % nb_workers;
         worker = &workers[*idx];
         
-        
-        if (worker->conn_pool->count >= server->max_connections) {
-            stx_log(server->logger,
-                    STX_LOG_ERR,
-                    "Connection limit %d reached, closing #%d",
-                    server->max_connections,
-                    conn);
-
-            close(conn);
-
-            break;
-        }
-        
         sin = (struct sockaddr_in *)&addr;
         inet_ntop(AF_INET, &sin->sin_addr.s_addr, ip_str, INET_ADDRSTRLEN);
         
@@ -72,22 +58,11 @@ void stx_accept(stx_server_t *server, stx_worker_t *workers, const int nb_worker
             continue;
         }
         
-        request = stx_request_init(server, conn);
-        if (NULL == request) {
-            stx_log(server->logger, STX_LOG_ERR,
-                    "Error while initializing request");
-            close(conn);
-            
-            continue;
-        }
-        
-        stx_list_append(worker->conn_pool, (void *)conn);
-        
         stx_event_ctl(worker->queue,
                       &ev,
                       conn,
                       STX_EVCTL_ADD | STX_EVCTL_DISPATCH,
                       STX_EVFILT_READ,
-                      request);
+                      NULL);
     }
 }

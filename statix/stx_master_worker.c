@@ -19,7 +19,7 @@ void stx_master_worker(stx_server_t *server,
                        const int nb_threads,
                        stx_worker_t *workers)
 {
-    int master_queue, nev, ident, error = 0, thread_index = 0, read, idx = 0;
+    int master_queue, nev, ident, error = 0, read, idx = 0;
     stx_event_t chlist[MAX_EVENTS];
     stx_event_t ev;
     
@@ -63,8 +63,6 @@ void stx_master_worker(stx_server_t *server,
             }
             
             if (read) {
-                thread_index = (thread_index + 1) % nb_threads;
-                
                 stx_log(server->logger, STX_LOG_DEBUG, "STX_EV_ACCEPT: #%d (backlog: %d)", ident, ev.data);
                 stx_accept(server, workers, nb_threads, &idx);
             }

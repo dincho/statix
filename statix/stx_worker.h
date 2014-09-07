@@ -15,7 +15,6 @@
 
 typedef struct {
     stx_server_t    *server;
-    stx_list_t      *conn_pool;
     int             queue;
     uint8_t         id;
 } stx_worker_t;

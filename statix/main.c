@@ -29,7 +29,6 @@ int main(int argc, const char * argv[])
     int queues[NB_THREADS];
     pthread_t threads[NB_THREADS];
     stx_worker_t workers[NB_THREADS];
-    stx_list_t *conn_pools[NB_THREADS];
 
     stx_log_t logger;
     logger.level = STX_LOG_WARN;
@@ -61,11 +60,6 @@ int main(int argc, const char * argv[])
     for (int i = 0; i < NB_THREADS; i++) {
         workers[i].server = &server;
         workers[i].id = i+2; //start from 1, 1 is the master
-
-        if (NULL == (workers[i].conn_pool = stx_list_init())) {
-            stx_log(server.logger, STX_LOG_ERR, "Cannot create connection pool");
-            return EXIT_FAILURE;
-        }
         
         if ((workers[i].queue = stx_queue_create()) == -1) {
             perror("stx_queue_create");
@@ -87,7 +81,6 @@ int main(int argc, const char * argv[])
         }
         
         stx_queue_close(queues[i]);
-        stx_list_destroy(conn_pools[i]);
     }
 
     return EXIT_SUCCESS;
