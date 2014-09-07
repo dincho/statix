@@ -40,11 +40,10 @@ int8_t stx_read(int queue, stx_request_t *req)
     if (rx > 0) {
         req->buffer_used += rx;
 
+        stx_log(req->server->logger, STX_LOG_DEBUG, "rx: %d bytes", rx);
+        
         //process request
         stx_request_process(req);
-        
-        stx_log(req->server->logger, STX_LOG_DEBUG, "rx: %d bytes", rx);
-        stx_log(req->server->logger, STX_LOG_INFO, "GET %s", req->uri_start);
 
         return 1;
     }

@@ -16,7 +16,9 @@ typedef struct {
     int         port;
     int         backlog;
     char        webroot[255];
+    size_t      webroot_len;
     char        index[255];
+    size_t      index_len;
     int         sock;
     int         max_connections;
 } stx_server_t;

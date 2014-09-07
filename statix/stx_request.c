@@ -95,9 +95,10 @@ static inline int stx_request_parse_line(stx_request_t *r)
 {
     char   ch;
     char  *p = r->buff;
+    char *buff_end = r->buff + r->buffer_used;
     stx_parse_state_t state = st_start;
     
-    while (state != st_done) {
+    while (state != st_done && p < buff_end) {
         ch = *p++;
         
         switch (state) {
@@ -161,11 +162,11 @@ static inline int stx_request_parse_line(stx_request_t *r)
                 
                 // "HTTP/"
             case st_http_version:
-                *(p-1) = '\0';
-                
                 if (ch != 'H' || *p != 'T' || *(p + 1) != 'T' || *(p + 2) != 'P' || *(p + 3) != '/') {
                     return -1;
                 }
+                
+                *(p-1) = '\0';
                 
                 p += 4;
                 state = st_first_major_digit;
@@ -232,7 +233,7 @@ static inline int stx_request_parse_line(stx_request_t *r)
         }
     }
     
-    return -1;
+    return (p == buff_end) ? -1 : 0;
 }
 
 static inline long stx_request_parse_headers_line(stx_request_t *r, char *name, char **value)
@@ -340,13 +341,21 @@ static inline void stx_request_process_file(stx_request_t *r)
     int fd;
     char filepath[255];
     struct stat sb;
+    char *p;
+    size_t b_left, min;
     
-    strcpy(filepath, r->server->webroot);
-    strncat(filepath, r->uri_start, r->uri_len);
+    p = filepath;
+    p = stpcpy(p, r->server->webroot);
     
+    b_left = p - filepath - 1;
+    min = (r->uri_len < b_left) ? r->uri_len : b_left;
+    p = stpncpy(p, r->uri_start, min);
+
     //append default index file when / is requested
     if (*(r->uri_start + r->uri_len - 1) == '/') {
-        strncat(filepath, r->server->index, strlen(r->server->index));
+        b_left = p - filepath - 1;
+        min = (r->server->index_len < b_left) ? r->server->index_len : b_left;
+        stpncpy(p, r->server->index, min);
     }
     
     if ((fd = open(filepath, O_RDONLY)) == -1) {
@@ -431,9 +440,19 @@ void stx_request_close(stx_request_t *req)
 
 void stx_request_process(stx_request_t *req)
 {
-    stx_request_parse_line(req);
-    stx_request_parse_headers(req);
+    if(-1 == stx_request_parse_line(req)) {
+        req->status = STX_STATUS_BAD_REQ;
+    } else {
+        if (NULL != req->headers_start) {
+            stx_request_parse_headers(req);
+        }
+        
+        stx_request_process_file(req);
+    }
+
     stx_request_set_content_type(req);
-    stx_request_process_file(req);
+    
+    stx_log(req->server->logger, STX_LOG_INFO, "GET %s", req->uri_start);
+    
     stx_request_build_response(req);
 }

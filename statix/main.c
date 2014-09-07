@@ -47,12 +47,15 @@ int main(int argc, const char * argv[])
     server.max_connections = 1000;
     
     strncpy(server.index, "index.html", sizeof(server.index));
-    
+    server.index_len = strlen(server.index);
+
     if (NULL == getcwd(server.webroot, sizeof(server.webroot))) {
         perror("getcwd");
         return EXIT_FAILURE;
     }
-
+    
+    server.webroot_len = strlen(server.webroot);
+    
     if (stx_listen(&server)) {
         return EXIT_FAILURE;
     }
