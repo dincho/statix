@@ -29,6 +29,12 @@ struct timespec;
     #define STX_EVFILT_READ_ONCE EPOLLIN | EPOLLET | EPOLLONESHOT
     #define STX_EVFILT_WRITE_ONCE EPOLLOUT | EPOLLET | EPOLLONESHOT
 
+    #define STX_EV_ERROR(ev) ev.events & EPOLLERR
+    #define STX_EV_EOF(ev) ev.events & EPOLLRDHUP
+    #define STX_EV_READ(ev) ev.events & STX_EVFILT_READ
+    #define STX_EV_READ_ONCE(ev) ev.events & STX_EVFILT_READ
+    #define STX_EV_IDENT(ev) ev.data.fd
+
     inline int stx_event_wait(int queue,
                               stx_event_t *eventlist,
                               int nevents,
@@ -59,6 +65,12 @@ struct timespec;
     #define STX_EVFILT_READ EVFILT_READ
     #define STX_EVFILT_READ_ONCE EVFILT_READ
     #define STX_EVFILT_WRITE_ONCE EVFILT_WRITE
+
+    #define STX_EV_ERROR(ev) ev.flags & EV_ERROR
+    #define STX_EV_EOF(ev) ev.flags & EV_EOF
+    #define STX_EV_READ(ev) ev.filter == STX_EVFILT_READ
+    #define STX_EV_READ_ONCE(ev) ev.filter == STX_EVFILT_READ_ONCE
+    #define STX_EV_IDENT(ev) (int) ev.ident
 
     inline int stx_event_wait(int queue, stx_event_t *eventlist,
                               int nevents, const struct timespec *timeout)

@@ -19,7 +19,7 @@ void stx_master_worker(stx_server_t *server,
                        const int nb_threads,
                        stx_worker_t *workers)
 {
-    int master_queue, nev, ident, error = 0, read, idx = 0;
+    int master_queue, nev, ident, idx = 0;
     stx_event_t chlist[MAX_EVENTS];
     stx_event_t ev;
     
@@ -46,23 +46,14 @@ void stx_master_worker(stx_server_t *server,
         
         for (int i = 0; i < nev; i++) {
             ev = chlist[i];
+            ident = STX_EV_IDENT(ev);
             
-#ifdef STX_EPOLL
-            ident = ev.data.fd;
-            error = ev.events & EPOLLERR;
-            read = (ev.events & STX_EVFILT_READ);
-#else
-            ident = (int) ev.ident;
-            error = ev.flags & EV_ERROR;
-            read = (ev.filter == STX_EVFILT_READ);
-#endif
-            
-            if (error) {
+            if (STX_EV_EOF(ev)) {
                 stx_log(server->logger, STX_LOG_ERR, "Event error: #%d", ident);
                 continue;
             }
             
-            if (read) {
+            if (STX_EV_READ(ev)) {
                 stx_log(server->logger, STX_LOG_DEBUG, "STX_EV_ACCEPT: #%d", ident);
                 stx_accept(server, workers, nb_threads, &idx);
             }

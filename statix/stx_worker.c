@@ -24,7 +24,7 @@ static const int OPEN_FILES_CACHE_CAPACITY = 16;
 
 void *stx_worker(void *arguments)
 {
-    int nev, ident, error = 0, eof = 0, read, read_ev = 0, write_ev = 0;
+    int nev, ident, read_ev = 0, write_ev = 0;
     stx_event_t chlist[MAX_EVENTS];
     stx_event_t ev;
     stx_request_t *request;
@@ -59,31 +59,16 @@ void *stx_worker(void *arguments)
         
         for (int i = 0; i < nev; i++) {
             ev = chlist[i];
+            ident = STX_EV_IDENT(ev);
             
-#ifdef STX_EPOLL
-            error = ev.events & EPOLLERR;
-            eof = ev.events & EPOLLRDHUP;
-            read = (ev.events & STX_EVFILT_READ);
-            ident = ev.data.fd;
-#else
-            error = ev.flags & EV_ERROR;
-            eof = ev.flags & EV_EOF;
-            read = (ev.filter == STX_EVFILT_READ_ONCE);
-            ident = (int) ev.ident;
-#endif
-            
-//            if (request) {
-//                ident = request->conn;
-//            }
-            
-            if (error) {
+            if (STX_EV_ERROR(ev)) {
                 stx_log(arg->server->logger, STX_LOG_ERR, "Event error: #%d", ident);
                 continue;
             }
             
             request = stx_hashmap_get(conn_pool, ident);
             
-            if (read) {
+            if (STX_EV_READ_ONCE(ev)) {
                 read_ev++;
                 
                 //first read after accept - init the request
@@ -111,9 +96,9 @@ void *stx_worker(void *arguments)
                     stx_hashmap_put(conn_pool, ident, request);
                 }
 
-                stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_READ: #%d (eof: %d)", ident, eof);
+                stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_READ: #%d (eof: %d)", ident, STX_EV_EOF(ev));
 
-                if (eof) {
+                if (STX_EV_EOF(ev)) {
                     stx_request_close(request);
                     stx_hashmap_put(conn_pool, ident, NULL);
                     
