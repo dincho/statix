@@ -44,6 +44,12 @@ typedef struct {
     char  *type;
 } stx_content_type_t;
 
+typedef struct {
+    int         fd;
+    int         count;
+	off_t		st_size;
+} stx_open_file_cache_t;
+
 static stx_content_type_t content_types[] = {
     {"html", "text/html; charset=UTF-8"}, //default
     {"jpg", "image/jpeg"},
@@ -75,7 +81,7 @@ stx_request_t* stx_request_init(stx_server_t *server, int conn)
 void stx_request_reset(stx_request_t *request)
 {
     if (request->fd > 0) {
-        close(request->fd);
+//        close(request->fd);
     }
 
     request->close = 0;
@@ -336,13 +342,14 @@ static inline int stx_request_parse_headers(stx_request_t *r)
     return 0;
 }
 
-static inline void stx_request_process_file(stx_request_t *r)
+static inline void stx_request_process_file(stx_request_t *r, stx_hashmap_t *open_files)
 {
     int fd;
     char filepath[255];
     struct stat sb;
     char *p;
     size_t b_left, min;
+    stx_open_file_cache_t *cache;
     
     p = filepath;
     p = stpcpy(p, r->server->webroot);
@@ -360,29 +367,51 @@ static inline void stx_request_process_file(stx_request_t *r)
     
     *p = '\0';
     
-    if ((fd = open(filepath, O_RDONLY)) == -1) {
-        if (ENOENT == errno) {
-            r->status = STX_STATUS_NOT_FOUND;
-        } else if (EACCES == errno) {
-            r->status = STX_STATUS_FORBIDDEN;
-        } else {
-            r->status = STX_STATUS_ERROR;
-            perror("open");
+    if (NULL == (cache = stx_hashmap_cget(open_files, filepath))) { //cache miss
+        stx_log(r->server->logger, STX_LOG_INFO, "Open files cache miss: %s", filepath);
+        
+        if ((fd = open(filepath, O_RDONLY)) == -1) {
+            if (ENOENT == errno) {
+                r->status = STX_STATUS_NOT_FOUND;
+            } else if (EACCES == errno) {
+                r->status = STX_STATUS_FORBIDDEN;
+            } else {
+                r->status = STX_STATUS_ERROR;
+                perror("open");
+            }
+            
+            return;
         }
         
-        return;
+        if (fstat(fd, &sb) == -1) {
+            r->status = STX_STATUS_ERROR;
+            perror("fstat");
+            
+            return;
+        }
+        
+        cache = malloc(sizeof(stx_open_file_cache_t));
+        if (NULL == cache) {
+            r->status = STX_STATUS_ERROR;
+            perror("malloc");
+
+            return;
+        }
+        
+        cache->fd = fd;
+        cache->st_size = sb.st_size;
+        if(!stx_hashmap_cput(open_files, filepath, cache)) {
+            r->status = STX_STATUS_ERROR;
+
+            return;
+        }
     }
     
-    if (fstat(fd, &sb) == -1) {
-        r->status = STX_STATUS_ERROR;
-        perror("fstat");
-        
-        return;
-    }
+    cache->count++;
     
     r->status = STX_STATUS_OK;
-    r->content_length = sb.st_size;
-    r->fd = fd;
+    r->content_length = cache->st_size;
+    r->fd = cache->fd;
 }
 
 static inline void stx_request_set_content_type(stx_request_t *r)
@@ -431,7 +460,7 @@ static inline void stx_request_build_response(stx_request_t *r)
 void stx_request_close(stx_request_t *req)
 {    
     if (req->fd > 0) {
-        close(req->fd);
+//        close(req->fd);
     }
     
     stx_log(req->server->logger, STX_LOG_DEBUG, "Connection #%d closed", req->conn);
@@ -440,7 +469,7 @@ void stx_request_close(stx_request_t *req)
     free(req);
 }
 
-void stx_request_process(stx_request_t *req)
+void stx_request_process(stx_request_t *req, stx_hashmap_t *open_files)
 {
     if(-1 == stx_request_parse_line(req)) {
         req->status = STX_STATUS_BAD_REQ;
@@ -449,12 +478,12 @@ void stx_request_process(stx_request_t *req)
             stx_request_parse_headers(req);
         }
         
-        stx_request_process_file(req);
+        stx_request_process_file(req, open_files);
     }
 
     stx_request_set_content_type(req);
     
-    stx_log(req->server->logger, STX_LOG_INFO, "GET %s", req->uri_start);
+//    stx_log(req->server->logger, STX_LOG_INFO, "GET %s", req->uri_start);
     
     stx_request_build_response(req);
 }

@@ -20,6 +20,7 @@
 #include "stx_hashmap.h"
 
 static const int MAX_EVENTS = 1024; //x 32b = 32Kb
+static const int OPEN_FILES_CACHE_CAPACITY = 16;
 
 void *stx_worker(void *arguments)
 {
@@ -31,6 +32,7 @@ void *stx_worker(void *arguments)
     int8_t ret;
 
     stx_hashmap_t *conn_pool = stx_hashmap_init(arg->server->max_connections);
+    stx_hashmap_t *open_files = stx_hashmap_init(OPEN_FILES_CACHE_CAPACITY);
     
     struct timespec tmout = {
         5,     /* block for 5 seconds at most */
@@ -75,7 +77,7 @@ void *stx_worker(void *arguments)
 //            if (request) {
 //                ident = request->conn;
 //            }
-
+            
             if (error) {
                 stx_log(arg->server->logger, STX_LOG_ERR, "Event error: #%d", ident);
                 continue;
@@ -134,6 +136,9 @@ void *stx_worker(void *arguments)
                     continue;
                 }
 
+                //process request
+                stx_request_process(request, open_files);
+                
                 stx_event_ctl(arg->queue, &ev, ident,
                               STX_EVCTL_MOD | STX_EVCTL_DISPATCH | STX_EVCTL_ENABLE,
                               STX_EVFILT_WRITE, request);

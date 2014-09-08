@@ -41,9 +41,6 @@ int8_t stx_read(int queue, stx_request_t *req)
         req->buffer_used += rx;
 
         stx_log(req->server->logger, STX_LOG_DEBUG, "rx: %d bytes", rx);
-        
-        //process request
-        stx_request_process(req);
 
         return 1;
     }
