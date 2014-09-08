@@ -11,6 +11,6 @@
 
 #include "stx_request.h"
 
-int8_t stx_read(int, stx_request_t *req);
+int8_t stx_read(stx_request_t *req);
 
 #endif

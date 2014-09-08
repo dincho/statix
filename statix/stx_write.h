@@ -11,6 +11,6 @@
 
 #include "stx_request.h"
 
-int8_t stx_write(int queue, stx_request_t *req);
+int8_t stx_write(stx_request_t *req);
 
 #endif

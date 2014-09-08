@@ -21,7 +21,7 @@
  * returns -1 if EAGAIN
  */
 
-int8_t stx_read(int queue, stx_request_t *req)
+int8_t stx_read(stx_request_t *req)
 {
     ssize_t rx, buff_sz;
     

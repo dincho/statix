@@ -17,7 +17,7 @@
 #include "stx_event_queue.h"
 
 
-int8_t stx_write(int queue, stx_request_t *req)
+int8_t stx_write(stx_request_t *req)
 {
     ssize_t tx;
     off_t sendfile_tx = 0; //sendfile sent bytes, it's in/out param
