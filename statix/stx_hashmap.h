@@ -32,8 +32,8 @@ typedef struct {
 stx_hashmap_t* stx_hashmap_init(unsigned int capacity);
 void stx_hashmap_destory(stx_hashmap_t *map);
 void *stx_hashmap_get(const stx_hashmap_t *map, const stx_key_t key);
-void *stx_hashmap_cget(const stx_hashmap_t *map, const unsigned char *key);
+void *stx_hashmap_cget(const stx_hashmap_t *map, const char *key);
 uint8_t stx_hashmap_put(stx_hashmap_t *map, const stx_key_t key, void *value);
-uint8_t stx_hashmap_cput(stx_hashmap_t *map, const unsigned char *key, void *value);
+uint8_t stx_hashmap_cput(stx_hashmap_t *map, const char *key, void *value);
 
 #endif
