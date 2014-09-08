@@ -58,10 +58,9 @@ void stx_accept(stx_server_t *server, stx_worker_t *workers, const int nb_worker
             continue;
         }
         
-        if(-1 == stx_event_ctl(worker->queue, &ev, conn,
-                              STX_EVCTL_ADD_ONCE,
-                              STX_EVFILT_READ_ONCE)
-        ) {
+
+        STX_EV_SET(&ev, conn, STX_EVCTL_ADD_ONCE, STX_EVFILT_READ_ONCE);        
+        if(-1 == stx_event_ctl(worker->queue, &ev, STX_EVCTL_ADD_ONCE)) {
             perror("stx_event_ctl");
         }
     }

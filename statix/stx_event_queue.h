@@ -35,6 +35,13 @@ struct timespec;
     #define STX_EV_READ_ONCE(ev) ev.events & STX_EVFILT_READ
     #define STX_EV_IDENT(ev) ev.data.fd
 
+    #define STX_EV_SET(evp, id, op, fl) do {    \
+        struct epoll_event *__evp__ = (evp);    \
+        __evp__->data.fd = (id);                  \
+        __evp__->events = (fl);                  \
+    } while(0)
+
+
     inline int stx_event_wait(int queue,
                               stx_event_t *eventlist,
                               int nevents,
@@ -43,13 +50,9 @@ struct timespec;
         return epoll_wait(queue, eventlist, nevents, -1);
     }
 
-    inline int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
-                             const int op, const int filter)
+    inline int stx_event_ctl(const int queue, stx_event_t *ev, const int op)
     {
-        ev->events = filter;
-        ev->data.fd = ident;
-        
-        return epoll_ctl(queue, op, ident, ev);
+        return epoll_ctl(queue, op, ev->data.fd, ev);
     }
 
 #else //Kqueue
@@ -72,17 +75,21 @@ struct timespec;
     #define STX_EV_READ_ONCE(ev) ev.filter == STX_EVFILT_READ_ONCE
     #define STX_EV_IDENT(ev) (int) ev.ident
 
+    #define STX_EV_SET(evp, id, op, fl) do {    \
+        struct kevent *__evp__ = (evp);         \
+        __evp__->ident = (id);                  \
+        __evp__->flags = (op);                  \
+        __evp__->filter = (fl);                 \
+    } while(0)
+
     inline int stx_event_wait(int queue, stx_event_t *eventlist,
                               int nevents, const struct timespec *timeout)
     {
         return kevent(queue, 0, 0, eventlist, nevents, timeout);
     }
 
-    inline int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
-                             const int op, const int filter)
+    inline int stx_event_ctl(const int queue, stx_event_t *ev, const int op)
     {
-        EV_SET(ev, ident, filter, op, 0, 0, NULL);
-        
         return kevent(queue, ev, 1, NULL, 0, NULL);
     }
 

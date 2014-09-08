@@ -28,8 +28,8 @@ void stx_master_worker(stx_server_t *server,
         return;
     }
     
-    if (-1 == stx_event_ctl(master_queue, &ev, server->sock,
-                            STX_EVCTL_ADD, STX_EVFILT_READ)) {
+    STX_EV_SET(&ev, server->sock, STX_EVCTL_ADD, STX_EVFILT_READ);    
+    if (-1 == stx_event_ctl(master_queue, &ev, STX_EVCTL_ADD)) {
         perror("stx_event_ctl");
         return;
     }

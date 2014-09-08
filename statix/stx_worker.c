@@ -22,14 +22,17 @@
 static const int MAX_EVENTS = 1024; //x 32b = 32Kb
 static const int OPEN_FILES_CACHE_CAPACITY = 16;
 
+static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_event_t *ev,
+                                    stx_server_t *server, stx_hashmap_t *open_files);
+
+static int8_t stx_handle_write_event(stx_hashmap_t *conn_pool, stx_event_t *ev);
+
 void *stx_worker(void *arguments)
 {
     int nev, ident, read_ev = 0, write_ev = 0;
     stx_event_t chlist[MAX_EVENTS];
     stx_event_t ev;
-    stx_request_t *request;
     stx_worker_t *arg = arguments;
-    int8_t ret;
 
     stx_hashmap_t *conn_pool = stx_hashmap_init(arg->server->max_connections);
     stx_hashmap_t *open_files = stx_hashmap_init(OPEN_FILES_CACHE_CAPACITY);
@@ -62,95 +65,124 @@ void *stx_worker(void *arguments)
             ident = STX_EV_IDENT(ev);
             
             if (STX_EV_ERROR(ev)) {
-                stx_log(arg->server->logger, STX_LOG_ERR, "Event error: #%d", ident);
+                stx_log(arg->server->logger, STX_LOG_ERR,
+                        "Event error: #%d", ident);
                 continue;
             }
             
-            request = stx_hashmap_get(conn_pool, ident);
-            
             if (STX_EV_READ_ONCE(ev)) {
                 read_ev++;
-                
-                //first read after accept - init the request
-                if (NULL == request) {
-                    if (conn_pool->elcount >= arg->server->max_connections) {
-                        stx_log(arg->server->logger,
-                                STX_LOG_ERR,
-                                "Connection limit %d reached, closing #%d",
-                                arg->server->max_connections,
-                                ident);
-                        
-                        close(ident);
-                        continue;
-                    }
-                    
-                    request = stx_request_init(arg->server, ident);
-                    if (NULL == request) {
-                        stx_log(arg->server->logger, STX_LOG_ERR,
-                                "Error while initializing request");
-                        
-                        close(ident);
-                        continue;
-                    }
-                    
-                    stx_hashmap_put(conn_pool, ident, request);
+                stx_log(arg->server->logger, STX_LOG_DEBUG,
+                        "STX_EV_READ: #%d (eof: %d)", ident, STX_EV_EOF(ev));
+
+                if (stx_handle_read_event(conn_pool, &ev, arg->server, open_files)) {
+                    stx_event_ctl(arg->queue, &ev, STX_EVCTL_MOD_ONCE);
                 }
-
-                stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_READ: #%d (eof: %d)", ident, STX_EV_EOF(ev));
-
-                if (STX_EV_EOF(ev)) {
-                    stx_request_close(request);
-                    stx_hashmap_put(conn_pool, ident, NULL);
-                    
-                    continue;
-                }
-
-                ret = stx_read(arg->queue, request);
-
-                if (-1 == ret) {
-                    stx_event_ctl(arg->queue, &ev, ident,
-                                  STX_EVCTL_MOD_ONCE,
-                                  STX_EVFILT_READ_ONCE);
-                    continue;
-                }
-                
-                if (0 == ret) {
-                    stx_request_close(request);
-                    stx_hashmap_put(conn_pool, ident, NULL);
-                    
-                    continue;
-                }
-
-                //process request
-                stx_request_process(request, open_files);
-                
-                stx_event_ctl(arg->queue, &ev, ident,
-                              STX_EVCTL_MOD_ONCE,
-                              STX_EVFILT_WRITE_ONCE);
             } else { //write
                 write_ev++;
-                stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_WRITE: #%d", ident);
-                if (-1 == stx_write(arg->queue, request)) {
-                    stx_event_ctl(arg->queue, &ev, ident,
-                                  STX_EVCTL_MOD_ONCE,
-                                  STX_EVFILT_WRITE_ONCE);
-                    continue;
-                }
+                stx_log(arg->server->logger, STX_LOG_DEBUG,
+                        "STX_EV_WRITE: #%d", ident);
                 
-                if (request->close) {
-                    stx_request_close(request);
-                    stx_hashmap_put(conn_pool, ident, NULL);
-                    
-                    continue;
+                if (stx_handle_write_event(conn_pool, &ev)) {
+                    stx_event_ctl(arg->queue, &ev, STX_EVCTL_MOD_ONCE);
                 }
-                
-                stx_request_reset(request);
-                stx_event_ctl(arg->queue, &ev, ident,
-                              STX_EVCTL_MOD_ONCE,
-                              STX_EVFILT_READ_ONCE);
             } //end read/write
         }
     }
     
     return NULL;
+}
+
+static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_event_t *ev,
+                                    stx_server_t *server, stx_hashmap_t *open_files)
+{
+    int ident, ret;
+    stx_request_t *request;
+    
+    ident = STX_EV_IDENT((*ev));
+    request = stx_hashmap_get(conn_pool, ident);
+    
+    if (STX_EV_EOF((*ev))) {
+        if (NULL != request) {
+            stx_request_close(request);
+        }
+        
+        stx_hashmap_put(conn_pool, ident, NULL);
+        
+        return 0;
+    }
+    
+    //first read after accept - init the request
+    if (NULL == request) {
+        if (conn_pool->elcount >= server->max_connections) {
+            stx_log(server->logger,
+                    STX_LOG_ERR,
+                    "Connection limit %d reached, closing #%d",
+                    server->max_connections,
+                    ident);
+            
+            close(ident);
+            return 0;
+        }
+        
+        request = stx_request_init(server, ident);
+        if (NULL == request) {
+            stx_log(server->logger, STX_LOG_ERR,
+                    "Error while initializing request");
+            
+            close(ident);
+
+            return 0;
+        }
+        
+        stx_hashmap_put(conn_pool, ident, request);
+    }
+    
+    ret = stx_read(request);
+    
+    if (-1 == ret) {
+        STX_EV_SET(ev, ident, STX_EVCTL_MOD_ONCE, STX_EVFILT_READ_ONCE);
+        
+        return 1;
+    }
+    
+    if (0 == ret) {
+        stx_request_close(request);
+        stx_hashmap_put(conn_pool, ident, NULL);
+        
+        return 0;
+    }
+    
+    //process request
+    stx_request_process(request, open_files);
+    STX_EV_SET(ev, ident, STX_EVCTL_MOD_ONCE, STX_EVFILT_WRITE_ONCE);
+    
+    return 1;
+}
+
+static int8_t stx_handle_write_event(stx_hashmap_t *conn_pool, stx_event_t *ev)
+{
+    int ident;
+    stx_request_t *request;
+    
+    ident = STX_EV_IDENT((*ev));
+    request = stx_hashmap_get(conn_pool, ident);
+    
+    if (-1 == stx_write(request)) {
+        STX_EV_SET(ev, ident, STX_EVCTL_MOD_ONCE, STX_EVFILT_WRITE_ONCE);
+
+        return 1;
+    }
+    
+    if (request->close) {
+        stx_request_close(request);
+        stx_hashmap_put(conn_pool, ident, NULL);
+        
+        return 0;
+    }
+    
+    stx_request_reset(request);
+    STX_EV_SET(ev, ident, STX_EVCTL_MOD_ONCE, STX_EVFILT_READ_ONCE);
+    
+    return 1;
 }

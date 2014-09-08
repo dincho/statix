@@ -15,17 +15,7 @@
 extern int stx_event_wait(int queue, stx_event_t *eventlist,
                           int nevents, const struct timespec *timeout);
 
-extern int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
-                         const int op, const int filter);
-
-
-extern int stx_event_wait(int queue,
-                          stx_event_t *eventlist,
-                          int nevents,
-                          const struct timespec *timeout);
-
-extern int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
-                         const int op, const int filter);
+extern int stx_event_ctl(const int queue, stx_event_t *ev, const int op);
 
 
 #ifdef STX_EPOLL //Epoll
