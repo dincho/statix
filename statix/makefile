@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-c -std=c99 -Wall
+CFLAGS=-c -std=c99 -Wall -D_GNU_SOURCE -O3
 LDFLAGS=-g -pthread
 SOURCES=$(wildcard *.c)
 OBJECTS=$(SOURCES:.c=.o)
