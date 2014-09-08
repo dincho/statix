@@ -16,7 +16,17 @@ extern int stx_event_wait(int queue, stx_event_t *eventlist,
                           int nevents, const struct timespec *timeout);
 
 extern int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
-                         const int op, const int filter, void *udata);
+                         const int op, const int filter);
+
+
+extern int stx_event_wait(int queue,
+                          stx_event_t *eventlist,
+                          int nevents,
+                          const struct timespec *timeout);
+
+extern int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
+                         const int op, const int filter);
+
 
 #ifdef STX_EPOLL //Epoll
 
@@ -30,23 +40,6 @@ int stx_queue_close(int queue)
     return close(queue);
 }
 
-int stx_event_wait(int queue,
-                   stx_event_t *eventlist,
-                   int nevents,
-                   const struct timespec *timeout)
-{
-    return epoll_wait(queue, eventlist, nevents, -1);
-}
-
-int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
-                  const int op, const int filter, void *udata)
-{
-    ev.events = filter;
-    ev.data.fd = ident;
-    ev->data.ptr = udata;
-    
-    return epoll_ctl(queue, ctl, ident, ev);
-}
 
 #else //Kqueue
 

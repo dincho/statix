@@ -29,7 +29,7 @@ void stx_master_worker(stx_server_t *server,
     }
     
     if (-1 == stx_event_ctl(master_queue, &ev, server->sock,
-                            STX_EVCTL_ADD, STX_EVFILT_READ, NULL)) {
+                            STX_EVCTL_ADD, STX_EVFILT_READ)) {
         perror("stx_event_ctl");
         return;
     }
@@ -63,7 +63,7 @@ void stx_master_worker(stx_server_t *server,
             }
             
             if (read) {
-                stx_log(server->logger, STX_LOG_DEBUG, "STX_EV_ACCEPT: #%d (backlog: %d)", ident, ev.data);
+                stx_log(server->logger, STX_LOG_DEBUG, "STX_EV_ACCEPT: #%d", ident);
                 stx_accept(server, workers, nb_threads, &idx);
             }
         }

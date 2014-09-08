@@ -22,13 +22,29 @@ struct timespec;
     typedef struct epoll_event stx_event_t;
 
     #define STX_EVCTL_ADD EPOLL_CTL_ADD
-    #define STX_EVCTL_MOD EPOLL_CTL_MOD
-//    #define STX_EVCTL_ONESHOT EPOLLET
-    #define STX_EVCTL_DISPATCH EPOLLET | EPOLLONESHOT
-    #define STX_EVCTL_ENABLE 0x00 //each event modification rearm it
+    #define STX_EVCTL_ADD_ONCE EPOLL_CTL_ADD
+    #define STX_EVCTL_MOD_ONCE EPOLL_CTL_MOD
 
     #define STX_EVFILT_READ EPOLLIN
-    #define STX_EVFILT_WRITE EPOLLOUT
+    #define STX_EVFILT_READ_ONCE EPOLLIN | EPOLLET | EPOLLONESHOT
+    #define STX_EVFILT_WRITE_ONCE EPOLLOUT | EPOLLET | EPOLLONESHOT
+
+    inline int stx_event_wait(int queue,
+                              stx_event_t *eventlist,
+                              int nevents,
+                              const struct timespec *timeout)
+    {
+        return epoll_wait(queue, eventlist, nevents, -1);
+    }
+
+    inline int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
+                             const int op, const int filter)
+    {
+        ev->events = filter;
+        ev->data.fd = ident;
+        
+        return epoll_ctl(queue, op, ident, ev);
+    }
 
 #else //Kqueue
 
@@ -36,14 +52,13 @@ struct timespec;
 
     typedef struct kevent stx_event_t;
 
-    #define STX_EVCTL_ADD EV_ADD
-    #define STX_EVCTL_MOD EV_ADD
-    #define STX_EVCTL_ONESHOT EV_ONESHOT
-    #define STX_EVCTL_DISPATCH EV_DISPATCH
-    #define STX_EVCTL_ENABLE EV_ENABLE
+    #define STX_EVCTL_ADD EV_ADD | EV_ENABLE
+    #define STX_EVCTL_ADD_ONCE EV_ADD | EV_DISPATCH | EV_ENABLE
+    #define STX_EVCTL_MOD_ONCE EV_ADD | EV_DISPATCH | EV_ENABLE
 
     #define STX_EVFILT_READ EVFILT_READ
-    #define STX_EVFILT_WRITE EVFILT_WRITE
+    #define STX_EVFILT_READ_ONCE EVFILT_READ
+    #define STX_EVFILT_WRITE_ONCE EVFILT_WRITE
 
     inline int stx_event_wait(int queue, stx_event_t *eventlist,
                               int nevents, const struct timespec *timeout)
@@ -52,9 +67,9 @@ struct timespec;
     }
 
     inline int stx_event_ctl(const int queue, stx_event_t *ev, const int ident,
-                             const int op, const int filter, void *udata)
+                             const int op, const int filter)
     {
-        EV_SET(ev, ident, filter, op, 0, 0, udata);
+        EV_SET(ev, ident, filter, op, 0, 0, NULL);
         
         return kevent(queue, ev, 1, NULL, 0, NULL);
     }

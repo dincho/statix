@@ -58,11 +58,11 @@ void stx_accept(stx_server_t *server, stx_worker_t *workers, const int nb_worker
             continue;
         }
         
-        stx_event_ctl(worker->queue,
-                      &ev,
-                      conn,
-                      STX_EVCTL_ADD | STX_EVCTL_DISPATCH,
-                      STX_EVFILT_READ,
-                      NULL);
+        if(-1 == stx_event_ctl(worker->queue, &ev, conn,
+                              STX_EVCTL_ADD_ONCE,
+                              STX_EVFILT_READ_ONCE)
+        ) {
+            perror("stx_event_ctl");
+        }
     }
 }

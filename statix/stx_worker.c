@@ -64,13 +64,11 @@ void *stx_worker(void *arguments)
             error = ev.events & EPOLLERR;
             eof = ev.events & EPOLLRDHUP;
             read = (ev.events & STX_EVFILT_READ);
-            request = (stx_request_t *) ev.data.ptr;
             ident = ev.data.fd;
 #else
             error = ev.flags & EV_ERROR;
             eof = ev.flags & EV_EOF;
-            read = (ev.filter == STX_EVFILT_READ);
-            request = (stx_request_t *) ev.udata;
+            read = (ev.filter == STX_EVFILT_READ_ONCE);
             ident = (int) ev.ident;
 #endif
             
@@ -83,11 +81,13 @@ void *stx_worker(void *arguments)
                 continue;
             }
             
+            request = stx_hashmap_get(conn_pool, ident);
+            
             if (read) {
                 read_ev++;
                 
                 //first read after accept - init the request
-                if (NULL == stx_hashmap_get(conn_pool, ident)) {
+                if (NULL == request) {
                     if (conn_pool->elcount >= arg->server->max_connections) {
                         stx_log(arg->server->logger,
                                 STX_LOG_ERR,
@@ -115,7 +115,7 @@ void *stx_worker(void *arguments)
 
                 if (eof) {
                     stx_request_close(request);
-                    stx_hashmap_put(conn_pool, request->conn, NULL);
+                    stx_hashmap_put(conn_pool, ident, NULL);
                     
                     continue;
                 }
@@ -124,14 +124,14 @@ void *stx_worker(void *arguments)
 
                 if (-1 == ret) {
                     stx_event_ctl(arg->queue, &ev, ident,
-                                  STX_EVCTL_ADD | STX_EVCTL_DISPATCH | STX_EVCTL_ENABLE,
-                                  STX_EVFILT_READ, request);
+                                  STX_EVCTL_MOD_ONCE,
+                                  STX_EVFILT_READ_ONCE);
                     continue;
                 }
                 
                 if (0 == ret) {
                     stx_request_close(request);
-                    stx_hashmap_put(conn_pool, request->conn, NULL);
+                    stx_hashmap_put(conn_pool, ident, NULL);
                     
                     continue;
                 }
@@ -140,29 +140,29 @@ void *stx_worker(void *arguments)
                 stx_request_process(request, open_files);
                 
                 stx_event_ctl(arg->queue, &ev, ident,
-                              STX_EVCTL_MOD | STX_EVCTL_DISPATCH | STX_EVCTL_ENABLE,
-                              STX_EVFILT_WRITE, request);
+                              STX_EVCTL_MOD_ONCE,
+                              STX_EVFILT_WRITE_ONCE);
             } else { //write
                 write_ev++;
                 stx_log(arg->server->logger, STX_LOG_DEBUG, "STX_EV_WRITE: #%d", ident);
                 if (-1 == stx_write(arg->queue, request)) {
                     stx_event_ctl(arg->queue, &ev, ident,
-                                  STX_EVCTL_MOD | STX_EVCTL_DISPATCH | STX_EVCTL_ENABLE,
-                                  STX_EVFILT_WRITE, request);
+                                  STX_EVCTL_MOD_ONCE,
+                                  STX_EVFILT_WRITE_ONCE);
                     continue;
                 }
                 
                 if (request->close) {
                     stx_request_close(request);
-                    stx_hashmap_put(conn_pool, request->conn, NULL);
+                    stx_hashmap_put(conn_pool, ident, NULL);
                     
                     continue;
                 }
                 
                 stx_request_reset(request);
                 stx_event_ctl(arg->queue, &ev, ident,
-                              STX_EVCTL_ADD | STX_EVCTL_DISPATCH | STX_EVCTL_ENABLE,
-                              STX_EVFILT_READ, request);
+                              STX_EVCTL_MOD_ONCE,
+                              STX_EVFILT_READ_ONCE);
             } //end read/write
         }
     }
