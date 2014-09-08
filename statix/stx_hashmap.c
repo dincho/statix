@@ -10,8 +10,7 @@
 #include <string.h> //memset
 #include "stx_hashmap.h"
 
-
-
+static unsigned long stx_hash(const unsigned char *str);
 static stx_pair_t * get_pair(stx_bucket_t *bucket, const stx_key_t key);
 
 stx_hashmap_t* stx_hashmap_init(unsigned int capacity)
@@ -72,7 +71,12 @@ void stx_hashmap_destory(stx_hashmap_t *map)
 	free(map);
 }
 
-void *stx_hashmap_get(const stx_hashmap_t *map, const uint32_t key)
+void *stx_hashmap_cget(const stx_hashmap_t *map, const unsigned char *key)
+{
+    return stx_hashmap_get(map, stx_hash(key));
+}
+
+void *stx_hashmap_get(const stx_hashmap_t *map, const stx_key_t key)
 {
 	unsigned int index;
 	stx_bucket_t *bucket;
@@ -91,6 +95,11 @@ void *stx_hashmap_get(const stx_hashmap_t *map, const uint32_t key)
 	}
     
     return pair->value;
+}
+
+uint8_t stx_hashmap_cput(stx_hashmap_t *map, const unsigned char *key, void *value)
+{
+    return stx_hashmap_put(map, stx_hash(key), value);
 }
 
 uint8_t stx_hashmap_put(stx_hashmap_t *map, const stx_key_t key, void *value)
@@ -204,4 +213,17 @@ static stx_pair_t * get_pair(stx_bucket_t *bucket, const stx_key_t key)
 	}
 
 	return NULL;
+}
+
+// djb2 - http://www.cse.yorku.ca/~oz/hash.html
+static unsigned long stx_hash(const unsigned char *str)
+{
+    unsigned long hash = 5381;
+    int c;
+    
+    while ((c = *str++)) {
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    }
+    
+    return hash;
 }
