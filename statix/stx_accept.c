@@ -48,7 +48,7 @@ void stx_accept(stx_server_t *server, stx_worker_t *workers, const int nb_worker
         sin = (struct sockaddr_in *)&addr;
         inet_ntop(AF_INET, &sin->sin_addr.s_addr, ip_str, INET_ADDRSTRLEN);
         
-        stx_log(server->logger, STX_LOG_INFO, "Accepted connection #%d from %s",
+        stx_log(server->logger, STX_LOG_DEBUG, "Accepted connection #%d from %s",
                 conn, ip_str);
         
         if (-1 == fcntl(conn, F_SETFL, fcntl(conn, F_GETFL, 0) | O_NONBLOCK)) {
