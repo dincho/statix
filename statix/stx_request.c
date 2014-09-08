@@ -355,8 +355,10 @@ static inline void stx_request_process_file(stx_request_t *r)
     if (*(r->uri_start + r->uri_len - 1) == '/') {
         b_left = p - filepath - 1;
         min = (r->server->index_len < b_left) ? r->server->index_len : b_left;
-        stpncpy(p, r->server->index, min);
+        p = stpncpy(p, r->server->index, min);
     }
+    
+    *p = '\0';
     
     if ((fd = open(filepath, O_RDONLY)) == -1) {
         if (ENOENT == errno) {
