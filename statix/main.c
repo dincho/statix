@@ -29,7 +29,9 @@ const int nb_shutdown_signals = 4;
 int STX_RUNNING = 1;
 
 void shutdown_handler(int signum);
-int parse_options(int argc, const char *argv[], char *ip, int *port, char *webroot, int *workers, int *connections, char *logfile, int *loglevel);
+int parse_options(int argc, const char *argv[], char *ip, int *port,
+                  char *webroot, int *workers, int *connections,
+                  char *logfile, int *loglevel, int *daemon);
 void print_usage(const char *name);
 
 int main(int argc, const char *argv[])
@@ -50,11 +52,19 @@ int main(int argc, const char *argv[])
     int opt_loglevel;
     int opt_workers = 0;
     int opt_connections = 0;
+    int opt_daemon = 0;
 
     if (!parse_options(argc, argv, opt_ip, &opt_port, opt_webroot, &opt_workers,
-                       &opt_connections, opt_logfile, &opt_loglevel)
+                       &opt_connections, opt_logfile, &opt_loglevel, &opt_daemon)
     ) {
         return EXIT_FAILURE;
+    }
+    
+    if (opt_daemon) {
+        if (daemon(0, 0)) {
+            perror("daemon");
+            return EXIT_FAILURE;
+        }
     }
     
     //initialize all main structures
@@ -124,7 +134,7 @@ int main(int argc, const char *argv[])
     }
     
     stx_log_flush(logger);
-    
+
     
     //master loop - returns only if global variable STX_RUNNING is set to true
     stx_master_worker(server, opt_workers, workers);
@@ -154,7 +164,9 @@ void shutdown_handler(int signum)
     STX_RUNNING = 0;
 }
 
-int parse_options(int argc, const char *argv[], char *ip, int *port, char *webroot, int *workers, int *connections, char *logfile, int *loglevel)
+int parse_options(int argc, const char *argv[], char *ip, int *port,
+                  char *webroot, int *workers, int *connections,
+                  char *logfile, int *loglevel, int *daemon)
 {
     char o;
     
@@ -165,6 +177,7 @@ int parse_options(int argc, const char *argv[], char *ip, int *port, char *webro
     *connections = 500;
     strcpy(logfile, "stderr");
     *loglevel = STX_LOG_WARN;
+    *daemon = 0;
     
     //default webroot
     if (NULL == getcwd(webroot, STX_MAX_PATH)) {
@@ -173,7 +186,7 @@ int parse_options(int argc, const char *argv[], char *ip, int *port, char *webro
     }
     
     //parse user supplied options
-    while ((o = getopt (argc, argv, "hi:p:r:w:c:l:v:")) != -1) {
+    while ((o = getopt (argc, argv, "hi:p:r:w:c:l:v:d")) != -1) {
         switch (o)
         {
             case 'h': //help
@@ -201,6 +214,9 @@ int parse_options(int argc, const char *argv[], char *ip, int *port, char *webro
             case 'v':
                 *loglevel = atoi(optarg);
                 break;
+            case 'd':
+                *daemon = 1;
+                break;
             case '?':
                 break;
         }
@@ -225,8 +241,9 @@ void print_usage(const char *name)
            "  -w nb_workers       number of workers to start            (default: 2)\n"
            "  -l filepath         logfile path                          (default: stderr)\n"
            "  -v level            logging level [0-4], 0 to disable     (default: 2)\n"
+           "  -d                  run as daemon (background)            (default: no)\n"
            "\n"
-           "example: %s -i 192.168.1.1 -p 8080 -l web.log -v 1 -w 4 -r /var/www/public_html\n"
+           "example: %s -d -i 192.168.1.1 -p 8080 -l web.log -v 1 -w 4 -r /var/www/public_html\n"
            "\n",
            name, name);
 }
