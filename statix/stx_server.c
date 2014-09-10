@@ -20,7 +20,7 @@ stx_server_t *stx_server_init(const char *ip, const int port,
         return NULL;
     }
     
-    strncpy(server->ip, ip, 15);
+    strncpy(server->ip, ip, STX_IP_LEN);
     server->port = port;
     server->backlog = 10000;
     

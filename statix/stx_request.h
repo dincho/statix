@@ -10,6 +10,8 @@
 #define statix_stx_request_h
 
 #include <stdlib.h> //size_t
+
+#include "config.h"
 #include "stx_server.h"
 #include "stx_list.h"
 #include "stx_hashmap.h"
@@ -42,7 +44,7 @@ typedef struct {
     char            *ext_start;
     size_t          ext_len;
     
-    char            buff[8192]; //8K
+    char            buff[STX_REQUEST_BUFF_SZ]; //8K
     size_t          buffer_used;
     off_t           buffer_offset;
     

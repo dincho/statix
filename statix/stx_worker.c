@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <unistd.h> //close()
 
+#include "config.h"
 #include "stx_worker.h"
 #include "stx_event_queue.h"
 #include "stx_accept.h"
@@ -18,9 +19,6 @@
 #include "stx_write.h"
 #include "stx_log.h"
 #include "stx_hashmap.h"
-
-static const int MAX_EVENTS = 1024; //x 32b = 32Kb
-static const int OPEN_FILES_CACHE_CAPACITY = 16;
 
 static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_list_t *request_pool, stx_event_t *ev,
                                     stx_server_t *server, stx_hashmap_t *open_files, int max_connections);
@@ -30,14 +28,14 @@ static int8_t stx_handle_write_event(stx_hashmap_t *conn_pool, stx_list_t *reque
 void *stx_worker(void *arguments)
 {
     int nev, ident, read_ev = 0, write_ev = 0;
-    stx_event_t chlist[MAX_EVENTS];
+    stx_event_t chlist[STX_MAX_EVENTS];
     stx_event_t ev;
     stx_worker_t *arg = arguments;
 
     stx_hashmap_t *conn_pool = stx_hashmap_init(arg->max_connections);
     
     
-    stx_hashmap_t *open_files = stx_hashmap_init(OPEN_FILES_CACHE_CAPACITY);
+    stx_hashmap_t *open_files = stx_hashmap_init(STX_OPEN_FILES_CACHE_CAPACITY);
     stx_list_t *request_pool = stx_list_init();
     
     stx_request_t *request;
@@ -62,7 +60,7 @@ void *stx_worker(void *arguments)
             "Started new worker thread - queue: %d, pool: %p", arg->queue, conn_pool);
     
     for (;;) {
-        nev = stx_event_wait(arg->queue, (stx_event_t *)&chlist, MAX_EVENTS, &tmout);
+        nev = stx_event_wait(arg->queue, (stx_event_t *)&chlist, STX_MAX_EVENTS, &tmout);
         
         if (nev == -1) {
             perror("stx_event_wait()");

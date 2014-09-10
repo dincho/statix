@@ -51,6 +51,7 @@
 		5B4B90E9190ACB080015AF8F /* stx_server.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_server.h; sourceTree = "<group>"; };
 		5B4B90EA190ACB120015AF8F /* stx_server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_server.c; sourceTree = "<group>"; };
 		5B5C9D9119B213E200322E67 /* tune.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = tune.sh; sourceTree = "<group>"; };
+		5B7BF67119C093A4001CAFAC /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		5B83410B18D7821800BAF1D9 /* stx_request.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_request.c; sourceTree = "<group>"; };
 		5B83411018D78BA100BAF1D9 /* stx_listen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_listen.h; sourceTree = "<group>"; };
 		5B83411118D78BAC00BAF1D9 /* stx_listen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_listen.c; sourceTree = "<group>"; };
@@ -108,6 +109,7 @@
 			isa = PBXGroup;
 			children = (
 				5B9D3B2C18C132BA00A88225 /* main.c */,
+				5B7BF67119C093A4001CAFAC /* config.h */,
 				5B4B90E9190ACB080015AF8F /* stx_server.h */,
 				5B4B90EA190ACB120015AF8F /* stx_server.c */,
 				5B83411018D78BA100BAF1D9 /* stx_listen.h */,

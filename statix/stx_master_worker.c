@@ -9,18 +9,17 @@
 #include <stdio.h> //perror
 #include <errno.h>
 
+#include "config.h"
 #include "stx_master_worker.h"
 #include "stx_event_queue.h"
 #include "stx_accept.h"
-
-static const int MAX_EVENTS = 1024; //x 32b = 32Kb
 
 void stx_master_worker(stx_server_t *server,
                        const int nb_threads,
                        stx_worker_t *workers)
 {
     int master_queue, nev, ident, idx = 0;
-    stx_event_t chlist[MAX_EVENTS];
+    stx_event_t chlist[STX_MAX_EVENTS];
     stx_event_t ev;
     
     if ((master_queue = stx_queue_create()) == -1) {
@@ -35,7 +34,7 @@ void stx_master_worker(stx_server_t *server,
     }
     
     for (;;) {
-        nev = stx_event_wait(master_queue, (stx_event_t *)&chlist, MAX_EVENTS, NULL);
+        nev = stx_event_wait(master_queue, (stx_event_t *)&chlist, STX_MAX_EVENTS, NULL);
         
         if (nev == -1) {
             perror("stx_event_wait()");

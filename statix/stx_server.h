@@ -9,16 +9,17 @@
 #ifndef statix_stx_server_h
 #define statix_stx_server_h
 
+#include "config.h"
 #include "stx_log.h"
 
 typedef struct {
     stx_log_t   *logger;
-    char        ip[15];
+    char        ip[STX_IP_LEN];
     int         port;
     int         backlog;
-    char        webroot[255];
+    char        webroot[STX_MAX_PATH];
     size_t      webroot_len;
-    char        index[255];
+    char        index[STX_MAX_NAME];
     size_t      index_len;
     int         sock;
 } stx_server_t;

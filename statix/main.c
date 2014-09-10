@@ -12,6 +12,7 @@
 #include <unistd.h> //getcwd, getopt
 #include <pthread.h>
 
+#include "config.h"
 #include "stx_log.h"
 #include "stx_server.h"
 #include "stx_listen.h"
@@ -33,10 +34,10 @@ int main(int argc, const char *argv[])
     int *queues;
 
     //options
-    char opt_ip[15];
+    char opt_ip[STX_IP_LEN];
     int opt_port;
-    char opt_webroot[255];
-    char opt_logfile[255];
+    char opt_webroot[STX_MAX_PATH];
+    char opt_logfile[STX_MAX_PATH];
     int opt_loglevel;
     int opt_workers = 0;
     int opt_connections = 0;
@@ -120,7 +121,7 @@ int parse_options(int argc, const char *argv[], char *ip, int *port, char *webro
     *loglevel = STX_LOG_WARN;
     
     //default webroot
-    if (NULL == getcwd(webroot, 255)) {
+    if (NULL == getcwd(webroot, STX_MAX_PATH)) {
         perror("getcwd");
         return 0;
     }
