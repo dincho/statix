@@ -99,9 +99,9 @@ static const char * const response_reason_phrase[] = {
     [STX_STATUS_NOT_IMPL] = "Not Implemented"
 };
 
-stx_request_t* stx_request_init(stx_server_t *, int conn);
+stx_request_t* stx_request_init(stx_list_t *request_pool, stx_server_t *, int conn);
 void stx_request_reset(stx_request_t *request);
-void stx_request_close(stx_request_t *);
+void stx_request_close(stx_list_t *request_pool, stx_request_t *);
 void stx_request_process(stx_request_t *request, stx_hashmap_t *open_files);
 
 

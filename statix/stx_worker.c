@@ -22,10 +22,10 @@
 static const int MAX_EVENTS = 1024; //x 32b = 32Kb
 static const int OPEN_FILES_CACHE_CAPACITY = 16;
 
-static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_event_t *ev,
+static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_list_t *request_pool, stx_event_t *ev,
                                     stx_server_t *server, stx_hashmap_t *open_files);
 
-static int8_t stx_handle_write_event(stx_hashmap_t *conn_pool, stx_event_t *ev);
+static int8_t stx_handle_write_event(stx_hashmap_t *conn_pool, stx_list_t *request_pool, stx_event_t *ev);
 
 void *stx_worker(void *arguments)
 {
@@ -35,8 +35,24 @@ void *stx_worker(void *arguments)
     stx_worker_t *arg = arguments;
 
     stx_hashmap_t *conn_pool = stx_hashmap_init(arg->server->max_connections);
-    stx_hashmap_t *open_files = stx_hashmap_init(OPEN_FILES_CACHE_CAPACITY);
     
+    
+    stx_hashmap_t *open_files = stx_hashmap_init(OPEN_FILES_CACHE_CAPACITY);
+    stx_list_t *request_pool = stx_list_init();
+    
+    stx_request_t *request;
+    
+    for (int r = 0; r < arg->server->max_connections; r++) {
+        request = malloc(sizeof(stx_request_t));
+        if (NULL == request) {
+            perror("malloc (request pool)");
+            break;
+        }
+        
+        stx_list_push(request_pool, request);
+        stx_hashmap_put(conn_pool, r+1, NULL); //preallocate map buckets
+    }
+
     struct timespec tmout = {
         5,     /* block for 5 seconds at most */
         0       /* nanoseconds */
@@ -75,7 +91,7 @@ void *stx_worker(void *arguments)
                 stx_log(arg->server->logger, STX_LOG_DEBUG,
                         "STX_EV_READ: #%d (eof: %d)", ident, STX_EV_EOF(ev));
 
-                if (stx_handle_read_event(conn_pool, &ev, arg->server, open_files)) {
+                if (stx_handle_read_event(conn_pool, request_pool, &ev, arg->server, open_files)) {
                     stx_event_ctl(arg->queue, &ev, STX_EVCTL_MOD_ONCE);
                 }
             } else { //write
@@ -83,7 +99,7 @@ void *stx_worker(void *arguments)
                 stx_log(arg->server->logger, STX_LOG_DEBUG,
                         "STX_EV_WRITE: #%d", ident);
                 
-                if (stx_handle_write_event(conn_pool, &ev)) {
+                if (stx_handle_write_event(conn_pool, request_pool, &ev)) {
                     stx_event_ctl(arg->queue, &ev, STX_EVCTL_MOD_ONCE);
                 }
             } //end read/write
@@ -93,7 +109,7 @@ void *stx_worker(void *arguments)
     return NULL;
 }
 
-static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_event_t *ev,
+static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_list_t *request_pool, stx_event_t *ev,
                                     stx_server_t *server, stx_hashmap_t *open_files)
 {
     int ident, ret;
@@ -104,7 +120,7 @@ static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_event_t *ev,
     
     if (STX_EV_EOF((*ev))) {
         if (NULL != request) {
-            stx_request_close(request);
+            stx_request_close(request_pool, request);
         }
         
         stx_hashmap_put(conn_pool, ident, NULL);
@@ -125,7 +141,7 @@ static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_event_t *ev,
             return 0;
         }
         
-        request = stx_request_init(server, ident);
+        request = stx_request_init(request_pool, server, ident);
         if (NULL == request) {
             stx_log(server->logger, STX_LOG_ERR,
                     "Error while initializing request");
@@ -147,7 +163,7 @@ static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_event_t *ev,
     }
     
     if (0 == ret) {
-        stx_request_close(request);
+        stx_request_close(request_pool, request);
         stx_hashmap_put(conn_pool, ident, NULL);
         
         return 0;
@@ -160,7 +176,7 @@ static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_event_t *ev,
     return 1;
 }
 
-static int8_t stx_handle_write_event(stx_hashmap_t *conn_pool, stx_event_t *ev)
+static int8_t stx_handle_write_event(stx_hashmap_t *conn_pool, stx_list_t *request_pool, stx_event_t *ev)
 {
     int ident;
     stx_request_t *request;
@@ -175,7 +191,7 @@ static int8_t stx_handle_write_event(stx_hashmap_t *conn_pool, stx_event_t *ev)
     }
     
     if (request->close) {
-        stx_request_close(request);
+        stx_request_close(request_pool, request);
         stx_hashmap_put(conn_pool, ident, NULL);
         
         return 0;

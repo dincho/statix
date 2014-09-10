@@ -58,13 +58,15 @@ static stx_content_type_t content_types[] = {
     {"txt", "text/plain; charset=UTF-8"}
 };
 
-stx_request_t* stx_request_init(stx_server_t *server, int conn)
+stx_request_t* stx_request_init(stx_list_t *request_pool, stx_server_t *server, int conn)
 {
     stx_request_t *request;
     
-    if (NULL == (request = malloc(sizeof(stx_request_t)))) {
-        stx_log(server->logger, STX_LOG_ERR, "cannot allocate memory for request");
-        return NULL;
+    if (NULL == (request = stx_list_pop(request_pool))) {
+        if (NULL == (request = malloc(sizeof(stx_request_t)))) {
+            stx_log(server->logger, STX_LOG_ERR, "cannot allocate memory for request");
+            return NULL;
+        }
     }
     
     request->server = server;
@@ -457,7 +459,7 @@ static inline void stx_request_build_response(stx_request_t *r)
             body);
 }
 
-void stx_request_close(stx_request_t *req)
+void stx_request_close(stx_list_t *request_pool, stx_request_t *req)
 {    
     if (req->fd > 0) {
 //        close(req->fd);
@@ -466,7 +468,9 @@ void stx_request_close(stx_request_t *req)
     stx_log(req->server->logger, STX_LOG_DEBUG, "Connection #%d closed", req->conn);
     
     close(req->conn);
-    free(req);
+    
+    stx_list_push(request_pool, req);
+//    free(req);
 }
 
 void stx_request_process(stx_request_t *req, stx_hashmap_t *open_files)
