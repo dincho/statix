@@ -40,7 +40,7 @@ int stx_sendfile(int fd, int sock, off_t *offset, size_t count, off_t *sent, cha
 
 int stx_sendfile(int fd, int sock, off_t *offset, size_t count, off_t *sent, char *headers, size_t headers_len)
 {
-    struct sf_hdtr sf_headers;
+    struct sf_hdtr sf_headers = {NULL, 0, NULL, 0};
     struct iovec ivh;
     int sf_ret;
     
