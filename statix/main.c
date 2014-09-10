@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <errno.h>
+#include <arpa/inet.h> //ip validation
 
 #include "config.h"
 #include "stx_log.h"
@@ -29,7 +30,8 @@ const int nb_shutdown_signals = 4;
 int STX_RUNNING = 1;
 
 void shutdown_handler(int signum);
-int parse_options(int argc, const char *argv[], char *ip, int *port,
+int parse_options(int argc, const char *argv[],
+                  sa_family_t *pfamily, char *ip, int *port,
                   char *webroot, int *workers, int *connections,
                   char *logfile, int *loglevel, int *daemon);
 void print_usage(const char *name);
@@ -53,8 +55,9 @@ int main(int argc, const char *argv[])
     int opt_workers = 0;
     int opt_connections = 0;
     int opt_daemon = 0;
+    sa_family_t opt_family;
 
-    if (!parse_options(argc, argv, opt_ip, &opt_port, opt_webroot, &opt_workers,
+    if (!parse_options(argc, argv, &opt_family, opt_ip, &opt_port, opt_webroot, &opt_workers,
                        &opt_connections, opt_logfile, &opt_loglevel, &opt_daemon)
     ) {
         return EXIT_FAILURE;
@@ -74,7 +77,7 @@ int main(int argc, const char *argv[])
         return EXIT_FAILURE;
     }
     
-    server = stx_server_init(opt_ip, opt_port, opt_webroot, logger);
+    server = stx_server_init(opt_family, opt_ip, opt_port, opt_webroot, logger);
     if (server == NULL) {
         perror("server init");
         return EXIT_FAILURE;
@@ -164,11 +167,13 @@ void shutdown_handler(int signum)
     STX_RUNNING = 0;
 }
 
-int parse_options(int argc, const char *argv[], char *ip, int *port,
+int parse_options(int argc, const char *argv[], sa_family_t *pfamily, char *ip, int *port,
                   char *webroot, int *workers, int *connections,
                   char *logfile, int *loglevel, int *daemon)
 {
     char o;
+    struct sockaddr_in sa4;
+    struct sockaddr_in6 sa6;
     
     //default options
     strcpy(ip, "127.0.0.1");
@@ -222,6 +227,19 @@ int parse_options(int argc, const char *argv[], char *ip, int *port,
         }
     }
     
+    
+    if (1 != inet_pton(AF_INET, ip, &(sa4.sin_addr))) {
+        if (1 != inet_pton(AF_INET6, ip, &(sa6.sin6_addr))) {
+            fprintf(stderr, "error: invalid IP address\n");
+            print_usage(argv[0]);
+            return 0;
+        } else {
+            *pfamily = AF_INET6;
+        }
+    } else {
+        *pfamily = AF_INET;
+    }
+    
     //validation the options
     if (NULL == ip || 0 == *port || 0 == *workers) {
         print_usage(argv[0]);
@@ -235,7 +253,7 @@ void print_usage(const char *name)
 {
     printf("Usage: %s <options>\n\n"
            "  -h                  show help and exit\n"
-           "  -i ip_address       listen IP address                     (default: 127.0.0.1)\n"
+           "  -i ip_address       listen IP address, IPv6 support       (default: 127.0.0.1)\n"
            "  -p port             listen port                           (default: 8000)\n"
            "  -r webroot          webroot directory                     (default: current directory)\n"
            "  -w nb_workers       number of workers to start            (default: 2)\n"

@@ -18,13 +18,20 @@
 int stx_listen(stx_server_t *server)
 {
     int fd;
-    struct sockaddr_in sin;
+    struct sockaddr_in sin4;
+    struct sockaddr_in6 sin6;
     
-    sin.sin_family = AF_INET;
-    sin.sin_addr.s_addr = inet_addr(server->ip);
-    sin.sin_port = htons(server->port);
+    if (server->pfamily == AF_INET) {
+        sin4.sin_family = AF_INET;
+        sin4.sin_port = htons(server->port);
+        inet_pton(AF_INET, server->ip, &(sin4.sin_addr));
+    } else {
+        sin6.sin6_family = AF_INET6;
+        sin6.sin6_port = htons(server->port);
+        inet_pton(AF_INET6, server->ip, &(sin6.sin6_addr));
+    }
     
-    fd = socket(AF_INET, SOCK_STREAM, 0);
+    fd = socket(server->pfamily, SOCK_STREAM, 0);
     if (-1 == fd) {
         perror("socket");
         return -1;
@@ -40,9 +47,16 @@ int stx_listen(stx_server_t *server)
     
     stx_log(server->logger, STX_LOG_WARN, "Listen %s:%d", server->ip, server->port);
     
-    if (bind(fd, (struct sockaddr*)&sin, sizeof(sin)) < 0) {
-        perror("bind");
-        return -1;
+    if (server->pfamily == AF_INET) {
+        if (bind(fd, (struct sockaddr *)&sin4, sizeof(sin4)) < 0) {
+            perror("bind");
+            return -1;
+        }
+    } else {
+        if (bind(fd, (struct sockaddr *)&sin6, sizeof(sin6)) < 0) {
+            perror("bind");
+            return -1;
+        }
     }
     
     if (listen(fd, server->backlog) < 0) {
@@ -51,8 +65,6 @@ int stx_listen(stx_server_t *server)
     }
     
     server->sock = fd;
-    
-    
     
     return 0;
 }
