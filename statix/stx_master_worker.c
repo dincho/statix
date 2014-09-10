@@ -21,7 +21,9 @@ void stx_master_worker(stx_server_t *server,
     int master_queue, nev, ident, idx = 0;
     stx_event_t chlist[STX_MAX_EVENTS];
     stx_event_t ev;
-    
+    /* block for 5 seconds at most */
+    struct timespec tmout = {5, 0};
+
     if ((master_queue = stx_queue_create()) == -1) {
         perror("kqueue");
         return;
@@ -33,8 +35,8 @@ void stx_master_worker(stx_server_t *server,
         return;
     }
     
-    for (;;) {
-        nev = stx_event_wait(master_queue, (stx_event_t *)&chlist, STX_MAX_EVENTS, NULL);
+    while (STX_RUNNING) {
+        nev = stx_event_wait(master_queue, (stx_event_t *)&chlist, STX_MAX_EVENTS, &tmout);
         
         if (nev == -1) {
             perror("stx_event_wait()");
@@ -58,4 +60,6 @@ void stx_master_worker(stx_server_t *server,
             }
         }
     }
+    
+    stx_log(server->logger, STX_LOG_WARN, "Master worker is shutting down");
 }

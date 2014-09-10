@@ -31,15 +31,14 @@ void *stx_worker(void *arguments)
     stx_event_t chlist[STX_MAX_EVENTS];
     stx_event_t ev;
     stx_worker_t *arg = arguments;
-
     stx_hashmap_t *conn_pool = stx_hashmap_init(arg->max_connections);
-    
-    
     stx_hashmap_t *open_files = stx_hashmap_init(STX_OPEN_FILES_CACHE_CAPACITY);
     stx_list_t *request_pool = stx_list_init();
-    
     stx_request_t *request;
-    
+    /* block for 5 seconds at most */
+    struct timespec tmout = {5, 0};
+
+    //preallocate the request pool
     for (int r = 0; r < arg->max_connections; r++) {
         request = malloc(sizeof(stx_request_t));
         if (NULL == request) {
@@ -50,16 +49,11 @@ void *stx_worker(void *arguments)
         stx_list_push(request_pool, request);
         stx_hashmap_put(conn_pool, r+1, NULL); //preallocate map buckets
     }
-
-    struct timespec tmout = {
-        5,     /* block for 5 seconds at most */
-        0       /* nanoseconds */
-    };
     
     stx_log(arg->server->logger, STX_LOG_DEBUG,
             "Started new worker thread - queue: %d, pool: %p", arg->queue, conn_pool);
     
-    for (;;) {
+    while (STX_RUNNING) {
         nev = stx_event_wait(arg->queue, (stx_event_t *)&chlist, STX_MAX_EVENTS, &tmout);
         
         if (nev == -1) {
@@ -106,7 +100,14 @@ void *stx_worker(void *arguments)
         stx_log_flush(arg->server->logger);
     }
     
-    return NULL;
+    stx_log(arg->server->logger, STX_LOG_WARN, "Worker #%d is shutting down", arg->id);
+    
+    stx_list_destroy(request_pool);
+    stx_hashmap_destory(open_files);
+    stx_hashmap_destory(conn_pool);
+
+    //more cleanup + pthread_exit
+    pthread_exit(NULL);
 }
 
 static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_list_t *request_pool, stx_event_t *ev,

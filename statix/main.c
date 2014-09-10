@@ -11,6 +11,8 @@
 #include <string.h> //strcpy
 #include <unistd.h> //getcwd, getopt
 #include <pthread.h>
+#include <signal.h>
+#include <errno.h>
 
 #include "config.h"
 #include "stx_log.h"
@@ -22,6 +24,11 @@
 #include "stx_worker.h"
 #include "stx_accept.h"
 
+const int shutdown_signals[] = {SIGHUP, SIGINT, SIGQUIT, SIGTERM};
+const int nb_shutdown_signals = 4;
+int STX_RUNNING = 1;
+
+void shutdown_handler(int signum);
 int parse_options(int argc, const char *argv[], char *ip, int *port, char *webroot, int *workers, int *connections, char *logfile, int *loglevel);
 void print_usage(const char *name);
 
@@ -32,7 +39,9 @@ int main(int argc, const char *argv[])
     stx_worker_t *workers;
     pthread_t *threads;
     int *queues;
-
+    sigset_t sigset;
+    int sigerr;
+    
     //options
     char opt_ip[STX_IP_LEN];
     int opt_port;
@@ -64,7 +73,27 @@ int main(int argc, const char *argv[])
     workers = calloc(opt_workers, sizeof(stx_worker_t));
     threads = calloc(opt_workers, sizeof(pthread_t));
     queues = calloc(opt_workers, sizeof(int));
+    
+    //install shutdown signals handler and fill sigset to block by threads
+    sigemptyset(&sigset);
+    for (int i = 0; i < sizeof(shutdown_signals)/sizeof(int); i++) {
+        sigaddset(&sigset, shutdown_signals[i]);
 
+        if (SIG_ERR == signal(shutdown_signals[i], shutdown_handler)) {
+            fprintf(stderr, "cannot install signal handler for %d: %s",
+                    shutdown_signals[i], strerror(errno));
+            return EXIT_FAILURE;
+        }
+    }
+    
+    //block all threads to receive the signals prior their creation
+    sigerr = pthread_sigmask(SIG_BLOCK, &sigset, NULL);
+    if (sigerr != 0) {
+        fprintf(stderr, "pthread_sigmask: %s", strerror(sigerr));
+        return EXIT_FAILURE;
+    }
+    
+    //configure and create worker threads
     for (int i = 0; i < opt_workers; i++) {
         workers[i].server = server;
         workers[i].max_connections = opt_connections;
@@ -81,13 +110,24 @@ int main(int argc, const char *argv[])
         }
     }
     
+    //unblock all signals for master thread after worker threads are already created
+    sigfillset(&sigset);
+    sigerr = pthread_sigmask(SIG_UNBLOCK, &sigset, NULL);
+    if (sigerr != 0) {
+        fprintf(stderr, "pthread_sigmask: %s", strerror(sigerr));
+        return EXIT_FAILURE;
+    }
+
+    
     if (stx_listen(server)) {
         return EXIT_FAILURE;
     }
     
     stx_log_flush(logger);
     
-    stx_master_worker(server, opt_workers, workers); //master loop
+    
+    //master loop - returns only if global variable STX_RUNNING is set to true
+    stx_master_worker(server, opt_workers, workers);
     
     for (int i = 0; i < opt_workers; i++) {
         if (pthread_join(threads[i], NULL)) {
@@ -106,6 +146,12 @@ int main(int argc, const char *argv[])
     stx_logger_destroy(logger);
 
     return EXIT_SUCCESS;
+}
+
+void shutdown_handler(int signum)
+{
+    fprintf(stderr, "Caught signal %d, shutting down ...\n", signum);
+    STX_RUNNING = 0;
 }
 
 int parse_options(int argc, const char *argv[], char *ip, int *port, char *webroot, int *workers, int *connections, char *logfile, int *loglevel)

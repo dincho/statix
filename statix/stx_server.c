@@ -7,6 +7,7 @@
 //
 
 #include <stdlib.h>
+#include <unistd.h> //close
 #include <string.h>
 
 #include "stx_server.h"
@@ -37,5 +38,6 @@ stx_server_t *stx_server_init(const char *ip, const int port,
 
 void stx_server_destory(stx_server_t *server)
 {
+    close(server->sock);
     free(server);
 }

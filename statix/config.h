@@ -16,4 +16,10 @@
 #define STX_MAX_EVENTS 1024 // kevent x 32b = 32Kb
 #define STX_OPEN_FILES_CACHE_CAPACITY 16
 
+//all event loops check this variable on each iteration
+//if it's set to 1, all loops quit
+extern int STX_RUNNING;
+extern const int shutdown_signals[];
+extern const int nb_shutdown_signals;
+
 #endif
