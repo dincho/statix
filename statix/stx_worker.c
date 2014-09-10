@@ -23,7 +23,7 @@ static const int MAX_EVENTS = 1024; //x 32b = 32Kb
 static const int OPEN_FILES_CACHE_CAPACITY = 16;
 
 static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_list_t *request_pool, stx_event_t *ev,
-                                    stx_server_t *server, stx_hashmap_t *open_files);
+                                    stx_server_t *server, stx_hashmap_t *open_files, int max_connections);
 
 static int8_t stx_handle_write_event(stx_hashmap_t *conn_pool, stx_list_t *request_pool, stx_event_t *ev);
 
@@ -34,7 +34,7 @@ void *stx_worker(void *arguments)
     stx_event_t ev;
     stx_worker_t *arg = arguments;
 
-    stx_hashmap_t *conn_pool = stx_hashmap_init(arg->server->max_connections);
+    stx_hashmap_t *conn_pool = stx_hashmap_init(arg->max_connections);
     
     
     stx_hashmap_t *open_files = stx_hashmap_init(OPEN_FILES_CACHE_CAPACITY);
@@ -42,7 +42,7 @@ void *stx_worker(void *arguments)
     
     stx_request_t *request;
     
-    for (int r = 0; r < arg->server->max_connections; r++) {
+    for (int r = 0; r < arg->max_connections; r++) {
         request = malloc(sizeof(stx_request_t));
         if (NULL == request) {
             perror("malloc (request pool)");
@@ -91,7 +91,7 @@ void *stx_worker(void *arguments)
                 stx_log(arg->server->logger, STX_LOG_DEBUG,
                         "STX_EV_READ: #%d (eof: %d)", ident, STX_EV_EOF(ev));
 
-                if (stx_handle_read_event(conn_pool, request_pool, &ev, arg->server, open_files)) {
+                if (stx_handle_read_event(conn_pool, request_pool, &ev, arg->server, open_files, arg->max_connections)) {
                     stx_event_ctl(arg->queue, &ev, STX_EVCTL_MOD_ONCE);
                 }
             } else { //write
@@ -104,13 +104,15 @@ void *stx_worker(void *arguments)
                 }
             } //end read/write
         }
+        
+        stx_log_flush(arg->server->logger);
     }
     
     return NULL;
 }
 
 static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_list_t *request_pool, stx_event_t *ev,
-                                    stx_server_t *server, stx_hashmap_t *open_files)
+                                    stx_server_t *server, stx_hashmap_t *open_files, int max_connections)
 {
     int ident, ret;
     stx_request_t *request;
@@ -130,11 +132,11 @@ static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_list_t *reques
     
     //first read after accept - init the request
     if (NULL == request) {
-        if (conn_pool->elcount >= server->max_connections) {
+        if (conn_pool->elcount >= max_connections) {
             stx_log(server->logger,
                     STX_LOG_ERR,
                     "Connection limit %d reached, closing #%d",
-                    server->max_connections,
+                    max_connections,
                     ident);
             
             close(ident);

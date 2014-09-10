@@ -7,6 +7,7 @@
 //
 
 #include <netinet/in.h> /* For sockaddr_in */
+#include <arpa/inet.h> //inet_addr
 #include <sys/socket.h> /* For socket functions */
 #include <stdio.h> //perror
 #include <sys/fcntl.h>
@@ -20,7 +21,7 @@ int stx_listen(stx_server_t *server)
     struct sockaddr_in sin;
     
     sin.sin_family = AF_INET;
-    sin.sin_addr.s_addr = INADDR_ANY;
+    sin.sin_addr.s_addr = inet_addr(server->ip);
     sin.sin_port = htons(server->port);
     
     fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -37,6 +38,8 @@ int stx_listen(stx_server_t *server)
     int reusesocket = 1;
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reusesocket, sizeof(int));
     
+    stx_log(server->logger, STX_LOG_WARN, "Listen %s:%d", server->ip, server->port);
+    
     if (bind(fd, (struct sockaddr*)&sin, sizeof(sin)) < 0) {
         perror("bind");
         return -1;
@@ -49,7 +52,7 @@ int stx_listen(stx_server_t *server)
     
     server->sock = fd;
     
-    stx_log(server->logger, STX_LOG_INFO, "Listening for new connections....");
+    
     
     return 0;
 }

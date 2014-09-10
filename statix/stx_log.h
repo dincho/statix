@@ -13,11 +13,11 @@
 #include <pthread.h>
 
 typedef enum {
-    STX_LOG_ERR = 0,
+    STX_LOG_NONE = 0,
+    STX_LOG_ERR,
     STX_LOG_WARN,
     STX_LOG_INFO,
     STX_LOG_DEBUG,
-    STX_LOG_NONE = -1,
 } stx_log_level_t;
 
 typedef struct {
@@ -26,6 +26,9 @@ typedef struct {
     int level;
 } stx_log_t;
 
+stx_log_t *stx_logger_init(const char *filepath, stx_log_level_t level);
+void stx_logger_destroy(stx_log_t *logger);
+void stx_log_flush(stx_log_t *logger);
 void _stx_log(stx_log_t *logger, stx_log_level_t level, const char *fmt, ...);
 
 #define stx_log(logger, log_level, fmt, ...) \

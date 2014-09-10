@@ -17,6 +17,7 @@ typedef struct {
     stx_server_t    *server;
     int             queue;
     uint8_t         id;
+    uint16_t        max_connections;
 } stx_worker_t;
 
 void *stx_worker(void *arg);

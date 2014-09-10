@@ -13,6 +13,7 @@
 
 typedef struct {
     stx_log_t   *logger;
+    char        ip[15];
     int         port;
     int         backlog;
     char        webroot[255];
@@ -20,7 +21,11 @@ typedef struct {
     char        index[255];
     size_t      index_len;
     int         sock;
-    int         max_connections;
 } stx_server_t;
+
+stx_server_t *stx_server_init(const char *ip, const int port,
+                              const char *webroot, stx_log_t *logger);
+
+void stx_server_destory(stx_server_t *server);
 
 #endif
