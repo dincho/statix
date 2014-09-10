@@ -25,7 +25,8 @@ typedef struct {
 
 stx_list_t *stx_list_init();
 void stx_list_destroy(stx_list_t *list);
-void stx_list_append(stx_list_t *list, void *data);
+void stx_list_push(stx_list_t *list, void *data);
+void* stx_list_pop(stx_list_t *list);
 void stx_list_remove(stx_list_t *list, stx_list_node_t *node);
 stx_list_node_t *stx_list_find(stx_list_t *list, void *data);
 

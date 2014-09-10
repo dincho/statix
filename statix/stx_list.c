@@ -28,7 +28,7 @@ void stx_list_destroy(stx_list_t *list)
     free(list);
 }
 
-void stx_list_append(stx_list_t *list, void *data)
+void stx_list_push(stx_list_t *list, void *data)
 {
     stx_list_node_t *node = calloc(1, sizeof(stx_list_node_t));
     node->data = data;
@@ -43,6 +43,21 @@ void stx_list_append(stx_list_t *list, void *data)
     }
     
     list->count++;
+}
+
+void* stx_list_pop(stx_list_t *list)
+{
+    void *data;
+    
+    if(list->last == NULL) {
+        return NULL;
+    }
+    
+    data = list->last->data;
+
+    stx_list_remove(list, list->last);
+    
+    return data;
 }
 
 void stx_list_remove(stx_list_t *list, stx_list_node_t *node)
