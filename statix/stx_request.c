@@ -244,7 +244,9 @@ static inline int stx_request_parse_line(stx_request_t *r)
     return (p == buff_end) ? -1 : 0;
 }
 
-static inline long stx_request_parse_headers_line(stx_request_t *r, char *name, char **value)
+static inline long stx_request_parse_headers_line(stx_request_t *r,
+                                                  char *name,
+                                                  char **value)
 {
     char   ch;
     char  *p;
@@ -344,7 +346,8 @@ static inline int stx_request_parse_headers(stx_request_t *r)
     return 0;
 }
 
-static inline void stx_request_process_file(stx_request_t *r, stx_hashmap_t *open_files)
+static inline void stx_request_process_file(stx_request_t *r,
+                                            stx_hashmap_t *open_files)
 {
     int fd;
     char filepath[255];
