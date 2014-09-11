@@ -18,7 +18,7 @@
 
 typedef enum {
     STX_METHOD_GET = 1,
-    STX_METHOD_POST
+    STX_METHOD_PUT
 } method_t;
 
 typedef enum {
