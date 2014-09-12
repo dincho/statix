@@ -256,6 +256,7 @@ void print_usage(const char *name)
            "  -p port             listen port                           (default: 8000)\n"
            "  -r webroot          webroot directory                     (default: current directory)\n"
            "  -w nb_workers       number of workers to start            (default: 2)\n"
+           "  -c connections      number of connections per worker      (default: 500)\n"
            "  -l filepath         logfile path                          (default: stderr)\n"
            "  -v level            logging level [0-5], 0 to disable     (default: 2)\n"
            "  -d                  run as daemon (background)            (default: no)\n"
