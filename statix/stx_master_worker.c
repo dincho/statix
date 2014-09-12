@@ -6,9 +6,6 @@
 //  Copyright (c) 2014 Dincho Todorov. All rights reserved.
 //
 
-#include <stdio.h> //perror
-#include <errno.h>
-
 #include "config.h"
 #include "stx_master_worker.h"
 #include "stx_event_queue.h"
@@ -25,13 +22,13 @@ void stx_master_worker(stx_server_t *server,
     struct timespec tmout = {5, 0};
 
     if ((master_queue = stx_queue_create()) == -1) {
-        perror("kqueue");
+        stx_log_syserr(server->logger, "stx_queue_create: %s");
         return;
     }
     
     STX_EV_SET(&ev, server->sock, STX_EVCTL_ADD, STX_EVFILT_READ);    
     if (-1 == stx_event_ctl(master_queue, &ev, STX_EVCTL_ADD)) {
-        perror("stx_event_ctl");
+        stx_log_syserr(server->logger, "stx_event_ctl: %s");
         return;
     }
     
@@ -39,7 +36,7 @@ void stx_master_worker(stx_server_t *server,
         nev = stx_event_wait(master_queue, (stx_event_t *)&chlist, STX_MAX_EVENTS, &tmout);
         
         if (nev == -1) {
-            perror("stx_event_wait()");
+            stx_log_syserr(server->logger, "stx_event_wait: %s");
             if (errno != EINTR) {
                 break;
             }
@@ -55,7 +52,7 @@ void stx_master_worker(stx_server_t *server,
             }
             
             if (STX_EV_READ(ev)) {
-                stx_log(server->logger, STX_LOG_DEBUG, "STX_EV_ACCEPT: #%d", ident);
+                stx_log(server->logger, STX_LOG_EVENT, "STX_EV_ACCEPT: #%d", ident);
                 stx_accept(server, workers, nb_threads, &idx);
             }
         }

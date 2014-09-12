@@ -77,20 +77,23 @@ void _stx_log(stx_log_t *logger, stx_log_level_t level, const char *fmt, ...)
 {    
     pthread_t t;
     va_list arg;
-    struct timeval tv;
     int err;
+    time_t rawtime;
+    struct tm * timeinfo;
+    char timestring[30];
     
     t = pthread_self();
     
-    gettimeofday(&tv, NULL);
-
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    strftime(timestring, 30, "%d/%m/%Y %H:%M:%S", timeinfo);
     
     /* Write the error message */
     if((err = pthread_mutex_lock(&logger->mutex))) {
         fprintf(stderr, "logger pthread_mutex_lock(): %s", strerror(err));
     }
     
-        fprintf(logger->fp, "[%lu][%lu.%d] ", (long)t, tv.tv_sec, tv.tv_usec);
+        fprintf(logger->fp, "[%s] ", timestring);
         
         va_start(arg, fmt);
         vfprintf(logger->fp, fmt, arg);

@@ -11,7 +11,6 @@
 #include <string.h>
 #include <fcntl.h> //O_RDONLY
 #include <sys/stat.h>
-#include <errno.h>
 
 #include "stx_request.h"
 #include "stx_log.h"
@@ -382,7 +381,7 @@ static inline void stx_request_process_file(stx_request_t *r,
                 r->status = STX_STATUS_FORBIDDEN;
             } else {
                 r->status = STX_STATUS_ERROR;
-                perror("open");
+                stx_log_syserr(r->server->logger, "open: %s");
             }
             
             return;
@@ -390,7 +389,7 @@ static inline void stx_request_process_file(stx_request_t *r,
         
         if (fstat(fd, &sb) == -1) {
             r->status = STX_STATUS_ERROR;
-            perror("fstat");
+            stx_log_syserr(r->server->logger, "fstat: %s");
             
             return;
         }
@@ -398,7 +397,7 @@ static inline void stx_request_process_file(stx_request_t *r,
         cache = malloc(sizeof(stx_open_file_cache_t));
         if (NULL == cache) {
             r->status = STX_STATUS_ERROR;
-            perror("malloc");
+            stx_log_syserr(r->server->logger, "malloc: %s");
 
             return;
         }
@@ -490,7 +489,7 @@ void stx_request_process(stx_request_t *req, stx_hashmap_t *open_files)
 
     stx_request_set_content_type(req);
     
-//    stx_log(req->server->logger, STX_LOG_INFO, "GET %s", req->uri_start);
+    stx_log(req->server->logger, STX_LOG_INFO, "GET %s", req->uri_start);
     
     stx_request_build_response(req);
 }

@@ -11,6 +11,8 @@
 
 #include <stdio.h> //FILE pointer
 #include <pthread.h>
+#include <errno.h>
+#include <string.h>
 
 typedef enum {
     STX_LOG_NONE = 0,
@@ -18,6 +20,7 @@ typedef enum {
     STX_LOG_WARN,
     STX_LOG_INFO,
     STX_LOG_DEBUG,
+    STX_LOG_EVENT
 } stx_log_level_t;
 
 typedef struct {
@@ -33,5 +36,11 @@ void _stx_log(stx_log_t *logger, stx_log_level_t level, const char *fmt, ...);
 
 #define stx_log(logger, log_level, fmt, ...) \
     do { if (logger->level >= log_level) _stx_log(logger, log_level, fmt, ##__VA_ARGS__); } while (0)
+
+#define stx_log_syserr(logger, fmt) \
+    do { \
+        if (logger->level >= STX_LOG_ERR) \
+            _stx_log(logger, STX_LOG_ERR, fmt, strerror(errno)); \
+    } while (0)
 
 #endif

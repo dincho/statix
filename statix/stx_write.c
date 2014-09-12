@@ -9,9 +9,6 @@
 #include <sys/socket.h> //recv, send
 #include <unistd.h> //read, close
 
-#include <string.h>
-#include <errno.h>
-
 #include "stx_write.h"
 #include "stx_sendfile.h"
 #include "stx_event_queue.h"
@@ -40,27 +37,27 @@ int8_t stx_write(stx_request_t *req)
                               headers,
                               headers_len);
 
-        stx_log(req->server->logger, STX_LOG_DEBUG,
+        stx_log(req->server->logger, STX_LOG_EVENT,
                 "[sendfile] offset: %d, tx: %d bytes",
                 req->buffer_offset,
                 sendfile_tx);
 
         if (-1 == sf_ret) {
             if (errno == EAGAIN) {
-                stx_log(req->server->logger, STX_LOG_WARN, "[sendfile] EAGAIN/EWOULDBLOCK conn:#%d, fd:#%d", req->conn,  req->fd);
+                stx_log(req->server->logger, STX_LOG_INFO, "[sendfile] EAGAIN/EWOULDBLOCK conn:#%d, fd:#%d", req->conn,  req->fd);
 
                 return -1;
             } else {
-                perror("sendfile");
+                stx_log_syserr(req->server->logger, "stx_sendfile: %s");
             }
         }
     } else {
         tx = send(req->conn, req->buff, req->buffer_used, 0);
         if(-1 == tx) {
-            perror("send");
+            stx_log_syserr(req->server->logger, "send: %s");
         }
         
-        stx_log(req->server->logger, STX_LOG_DEBUG, "tx: %d bytes", tx);
+        stx_log(req->server->logger, STX_LOG_EVENT, "tx: %d bytes", tx);
     }
     
     return 0;

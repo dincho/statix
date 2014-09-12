@@ -7,8 +7,6 @@
 //
 
 #include <sys/socket.h> //recv
-#include <stdio.h> //perror
-#include <errno.h>
 #include <unistd.h> //close
 
 #include "stx_read.h"
@@ -40,7 +38,7 @@ int8_t stx_read(stx_request_t *req)
     if (rx > 0) {
         req->buffer_used += rx;
 
-        stx_log(req->server->logger, STX_LOG_DEBUG, "rx: %d bytes", rx);
+        stx_log(req->server->logger, STX_LOG_EVENT, "rx: %d bytes", rx);
 
         return 1;
     }
@@ -56,13 +54,13 @@ int8_t stx_read(stx_request_t *req)
     if (rx == -1) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             stx_log(req->server->logger,
-                    STX_LOG_WARN,
+                    STX_LOG_INFO,
                     "EAGAIN/EWOULDBLOCK while reading #%d",
                     req->conn);
             
             return -1;
         } else {
-            perror("recv");
+            stx_log_syserr(req->server->logger, "recv: %s");
             
             return 0;
         }

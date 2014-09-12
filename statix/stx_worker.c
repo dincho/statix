@@ -6,9 +6,7 @@
 //  Copyright (c) 2014 Dincho Todorov. All rights reserved.
 //
 
-#include <errno.h>
 #include <string.h> //memset
-#include <stdio.h>
 #include <unistd.h> //close()
 
 #include "config.h"
@@ -42,7 +40,7 @@ void *stx_worker(void *arguments)
     for (int r = 0; r < arg->max_connections; r++) {
         request = malloc(sizeof(stx_request_t));
         if (NULL == request) {
-            perror("malloc (request pool)");
+            stx_log_syserr(arg->server->logger, "malloc: %s");
             break;
         }
         
@@ -50,21 +48,21 @@ void *stx_worker(void *arguments)
         stx_hashmap_put(conn_pool, r+1, NULL); //preallocate map buckets
     }
     
-    stx_log(arg->server->logger, STX_LOG_DEBUG,
+    stx_log(arg->server->logger, STX_LOG_INFO,
             "Started new worker thread - queue: %d, pool: %p", arg->queue, conn_pool);
     
     while (STX_RUNNING) {
         nev = stx_event_wait(arg->queue, (stx_event_t *)&chlist, STX_MAX_EVENTS, &tmout);
         
         if (nev == -1) {
-            perror("stx_event_wait()");
+            stx_log_syserr(arg->server->logger, "stx_event_wait: %s");
             if (errno != EINTR) {
                 break;
             }
         }
         
         if (nev == 0) { //handle timeout
-            stx_log(arg->server->logger, STX_LOG_WARN,
+            stx_log(arg->server->logger, STX_LOG_EVENT,
                     "Events: %d %d %d", arg->id, read_ev, write_ev);
         }
         
@@ -80,7 +78,7 @@ void *stx_worker(void *arguments)
             
             if (STX_EV_READ_ONCE(ev)) {
                 read_ev++;
-                stx_log(arg->server->logger, STX_LOG_DEBUG,
+                stx_log(arg->server->logger, STX_LOG_EVENT,
                         "STX_EV_READ: #%d (eof: %d)", ident, STX_EV_EOF(ev));
 
                 if (stx_handle_read_event(conn_pool, request_pool, &ev, arg->server, open_files, arg->max_connections)) {
@@ -88,7 +86,7 @@ void *stx_worker(void *arguments)
                 }
             } else { //write
                 write_ev++;
-                stx_log(arg->server->logger, STX_LOG_DEBUG,
+                stx_log(arg->server->logger, STX_LOG_EVENT,
                         "STX_EV_WRITE: #%d", ident);
                 
                 if (stx_handle_write_event(conn_pool, request_pool, &ev)) {
@@ -133,7 +131,7 @@ static int8_t stx_handle_read_event(stx_hashmap_t *conn_pool, stx_list_t *reques
     if (NULL == request) {
         if (conn_pool->elcount >= max_connections) {
             stx_log(server->logger,
-                    STX_LOG_ERR,
+                    STX_LOG_WARN,
                     "Connection limit %d reached, closing #%d",
                     max_connections,
                     ident);

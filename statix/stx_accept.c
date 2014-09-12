@@ -45,7 +45,7 @@ void stx_accept(stx_server_t *server, stx_worker_t *workers, const int nb_worker
         conn = accept(server->sock, addr, &addr_size);
         if (conn < 0) {
             if (errno != EAGAIN) {
-                perror("accept");
+                stx_log_syserr(server->logger, "accept: %s");
             }
             
             break;
@@ -61,7 +61,7 @@ void stx_accept(stx_server_t *server, stx_worker_t *workers, const int nb_worker
                 conn, ip_str);
         
         if (-1 == fcntl(conn, F_SETFL, fcntl(conn, F_GETFL, 0) | O_NONBLOCK)) {
-            perror("fcntl");
+            stx_log_syserr(server->logger, "fcntl: %s");
             close(conn);
             
             continue;
@@ -72,7 +72,7 @@ void stx_accept(stx_server_t *server, stx_worker_t *workers, const int nb_worker
         
         STX_EV_SET(&ev, conn, STX_EVCTL_ADD_ONCE, STX_EVFILT_READ_ONCE);        
         if(-1 == stx_event_ctl(worker->queue, &ev, STX_EVCTL_ADD_ONCE)) {
-            perror("stx_event_ctl");
+            stx_log_syserr(server->logger, "stx_event_ctl: %s");
         }
     }
 }

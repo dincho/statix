@@ -9,7 +9,6 @@
 #include <netinet/in.h> /* For sockaddr_in */
 #include <arpa/inet.h> //inet_addr
 #include <sys/socket.h> /* For socket functions */
-#include <stdio.h> //perror
 #include <sys/fcntl.h>
 
 #include "stx_listen.h"
@@ -33,34 +32,34 @@ int stx_listen(stx_server_t *server)
     
     fd = socket(server->pfamily, SOCK_STREAM, 0);
     if (-1 == fd) {
-        perror("socket");
+        stx_log_syserr(server->logger, "socket: %s");
         return -1;
     }
     
     if (-1 == fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK)) {
-        perror("fcntl");
+        stx_log_syserr(server->logger, "fcntl: %s");
         return -1;
     }
     
     int reusesocket = 1;
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reusesocket, sizeof(int));
     
-    stx_log(server->logger, STX_LOG_WARN, "Listen %s:%d", server->ip, server->port);
+    stx_log(server->logger, STX_LOG_INFO, "Listen %s:%d", server->ip, server->port);
     
     if (server->pfamily == AF_INET) {
         if (bind(fd, (struct sockaddr *)&sin4, sizeof(sin4)) < 0) {
-            perror("bind");
+            stx_log_syserr(server->logger, "bind: %s");
             return -1;
         }
     } else {
         if (bind(fd, (struct sockaddr *)&sin6, sizeof(sin6)) < 0) {
-            perror("bind");
+            stx_log_syserr(server->logger, "bind: %s");
             return -1;
         }
     }
     
     if (listen(fd, server->backlog) < 0) {
-        perror("listen");
+        stx_log_syserr(server->logger, "listen: %s");
         return -1;
     }
     
