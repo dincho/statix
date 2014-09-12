@@ -18,7 +18,6 @@
 #include "config.h"
 #include "stx_log.h"
 #include "stx_server.h"
-#include "stx_listen.h"
 #include "stx_list.h"
 #include "stx_event_queue.h"
 #include "stx_master_worker.h"
@@ -132,7 +131,7 @@ int main(int argc, const char *argv[])
     }
 
     
-    if (stx_listen(server)) {
+    if (stx_server_listen(server)) {
         return EXIT_FAILURE;
     }
     

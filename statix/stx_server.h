@@ -32,5 +32,6 @@ stx_server_t *stx_server_init(const sa_family_t family,
                               const char *ip, const int port,
                               const char *webroot, stx_log_t *logger);
 void stx_server_destory(stx_server_t *server);
+int stx_server_listen(stx_server_t *);
 
 #endif
