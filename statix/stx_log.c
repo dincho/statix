@@ -75,14 +75,11 @@ void stx_log_flush(stx_log_t *logger)
 
 void _stx_log(stx_log_t *logger, stx_log_level_t level, const char *fmt, ...)
 {    
-    pthread_t t;
     va_list arg;
     int err;
     time_t rawtime;
     struct tm * timeinfo;
     char timestring[30];
-    
-    t = pthread_self();
     
     time(&rawtime);
     timeinfo = localtime(&rawtime);

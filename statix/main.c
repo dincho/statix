@@ -29,13 +29,13 @@ const int nb_shutdown_signals = 4;
 int STX_RUNNING = 1;
 
 void shutdown_handler(int signum);
-int parse_options(int argc, const char *argv[],
+int parse_options(int argc, char * const *argv,
                   sa_family_t *pfamily, char *ip, int *port,
                   char *webroot, int *workers, int *connections,
                   char *logfile, int *loglevel, int *daemon);
 void print_usage(const char *name);
 
-int main(int argc, const char *argv[])
+int main(int argc, char * const *argv)
 {
     stx_log_t *logger;
     stx_server_t *server;
@@ -166,7 +166,7 @@ void shutdown_handler(int signum)
     STX_RUNNING = 0;
 }
 
-int parse_options(int argc, const char *argv[], sa_family_t *pfamily, char *ip, int *port,
+int parse_options(int argc, char * const *argv, sa_family_t *pfamily, char *ip, int *port,
                   char *webroot, int *workers, int *connections,
                   char *logfile, int *loglevel, int *daemon)
 {
