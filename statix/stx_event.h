@@ -47,7 +47,7 @@ struct timespec;
                               int nevents,
                               const struct timespec *timeout)
     {
-        return epoll_wait(queue, eventlist, nevents, -1);
+        return epoll_wait(queue, eventlist, nevents, (timeout->tv_sec * 1000));
     }
 
     inline int stx_event_ctl(const int queue, stx_event_t *ev, const int op)
