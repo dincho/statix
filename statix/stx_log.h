@@ -34,12 +34,15 @@ void stx_logger_destroy(stx_log_t *logger);
 void stx_log_flush(stx_log_t *logger);
 void _stx_log(stx_log_t *logger, stx_log_level_t level, const char *fmt, ...);
 
-#define stx_log(logger, log_level, fmt, ...) \
-    do { if (logger->level >= log_level) _stx_log(logger, log_level, fmt, ##__VA_ARGS__); } while (0)
+#define stx_log(logger, log_level, fmt, ...)                    \
+    do {                                                        \
+        if (logger->level >= log_level)                         \
+            _stx_log(logger, log_level, fmt, ##__VA_ARGS__);    \
+    } while (0)
 
-#define stx_log_syserr(logger, fmt) \
-    do { \
-        if (logger->level >= STX_LOG_ERR) \
+#define stx_log_syserr(logger, fmt)                              \
+    do {                                                         \
+        if (logger->level >= STX_LOG_ERR)                        \
             _stx_log(logger, STX_LOG_ERR, fmt, strerror(errno)); \
     } while (0)
 
