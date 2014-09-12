@@ -15,7 +15,8 @@
 
 #ifdef __linux
 
-int stx_sendfile(int fd, int sock, off_t *offset, size_t count, off_t *sent, char *headers, size_t headers_len)
+int stx_sendfile(int fd, int sock, off_t *offset, size_t count,
+                 off_t *sent, char *headers, size_t headers_len)
 {
     ssize_t tx;
     
@@ -38,7 +39,8 @@ int stx_sendfile(int fd, int sock, off_t *offset, size_t count, off_t *sent, cha
 
 #else //not linux
 
-int stx_sendfile(int fd, int sock, off_t *offset, size_t count, off_t *sent, char *headers, size_t headers_len)
+int stx_sendfile(int fd, int sock, off_t *offset, size_t count,
+                 off_t *sent, char *headers, size_t headers_len)
 {
     struct sf_hdtr sf_headers = {NULL, 0, NULL, 0};
     struct iovec ivh;

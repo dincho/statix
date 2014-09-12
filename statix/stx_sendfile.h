@@ -18,6 +18,7 @@
 #endif //__linux
 
 
-int stx_sendfile(int fd, int sock, off_t *offset, size_t count, off_t *sent, char *headers, size_t headers_len);
+int stx_sendfile(int fd, int sock, off_t *offset, size_t count,
+                off_t *sent, char *headers, size_t headers_len);
 
 #endif //statix_stx_sendfile_h

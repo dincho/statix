@@ -96,6 +96,6 @@ struct timespec;
 #endif //end epoll/kqueue check
 
 int stx_queue_create();
-int stx_queue_close();
+int stx_queue_close(int queue);
 
 #endif
