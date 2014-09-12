@@ -9,6 +9,7 @@
 #ifndef statix_config_h
 #define statix_config_h
 
+#define STX_VERSION "Statix/0.1.0"
 #define STX_MAX_PATH 255
 #define STX_MAX_NAME 128
 #define STX_IP_LEN 15

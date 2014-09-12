@@ -190,11 +190,15 @@ int parse_options(int argc, char * const *argv, sa_family_t *pfamily, char *ip, 
     }
     
     //parse user supplied options
-    while ((o = getopt (argc, argv, "hi:p:r:w:c:l:v:d")) != -1) {
+    while ((o = getopt (argc, argv, "hvi:p:r:w:c:o:l:d")) != -1) {
         switch (o)
         {
             case 'h': //help
                 print_usage(argv[0]);
+                return 0;
+                break;
+            case 'v': //version
+                printf("%s\n", STX_VERSION);
                 return 0;
                 break;
             case 'i':
@@ -212,10 +216,10 @@ int parse_options(int argc, char * const *argv, sa_family_t *pfamily, char *ip, 
             case 'c':
                 *connections = atoi(optarg);
                 break;
-            case 'l':
+            case 'o':
                 strncpy(logfile, optarg, 255);
                 break;
-            case 'v':
+            case 'l':
                 *loglevel = atoi(optarg);
                 break;
             case 'd':
@@ -252,16 +256,17 @@ void print_usage(const char *name)
 {
     printf("Usage: %s <options>\n\n"
            "  -h                  show help and exit\n"
+           "  -v                  show version and exit\n"
            "  -i ip_address       listen IP address, IPv6 support       (default: 127.0.0.1)\n"
            "  -p port             listen port                           (default: 8000)\n"
            "  -r webroot          webroot directory                     (default: current directory)\n"
            "  -w nb_workers       number of workers to start            (default: 2)\n"
            "  -c connections      number of connections per worker      (default: 500)\n"
-           "  -l filepath         logfile path                          (default: stderr)\n"
-           "  -v level            logging level [0-5], 0 to disable     (default: 2)\n"
+           "  -o filepath         logfile path                          (default: stderr)\n"
+           "  -l level            logging level [0-5], 0 to disable     (default: 2)\n"
            "  -d                  run as daemon (background)            (default: no)\n"
            "\n"
-           "example: %s -d -i 192.168.1.1 -p 8080 -l web.log -v 1 -w 4 -r /var/www/public_html\n"
+           "example: %s -d -i 192.168.1.1 -p 8080 -o web.log -l 1 -w 4 -r /var/www/public_html\n"
            "\n",
            name, name);
 }
