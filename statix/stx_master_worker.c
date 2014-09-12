@@ -8,7 +8,7 @@
 
 #include "config.h"
 #include "stx_master_worker.h"
-#include "stx_event_queue.h"
+#include "stx_event.h"
 #include "stx_accept.h"
 
 void stx_master_worker(stx_server_t *server,

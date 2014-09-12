@@ -11,7 +11,7 @@
 
 #include "stx_read.h"
 #include "stx_log.h"
-#include "stx_event_queue.h"
+#include "stx_event.h"
 
 /*
  * returns 1 when read is done

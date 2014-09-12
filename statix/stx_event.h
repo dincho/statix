@@ -1,13 +1,13 @@
 //
-//  stx_event_queue.h
+//  stx_event.h
 //  statix
 //
 //  Created by Dincho Todorov on 8/26/14.
 //  Copyright (c) 2014 Dincho Todorov. All rights reserved.
 //
 
-#ifndef statix_stx_event_queue_h
-#define statix_stx_event_queue_h
+#ifndef statix_stx_event_h
+#define statix_stx_event_h
 
 #include <time.h>
 

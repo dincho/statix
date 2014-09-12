@@ -14,7 +14,7 @@
 
 #include "stx_request.h"
 #include "stx_log.h"
-#include "stx_event_queue.h"
+#include "stx_event.h"
 
 typedef enum {
     st_start = 0,

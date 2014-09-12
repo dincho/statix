@@ -11,7 +11,7 @@
 
 #include "stx_write.h"
 #include "stx_sendfile.h"
-#include "stx_event_queue.h"
+#include "stx_event.h"
 
 
 int8_t stx_write(stx_request_t *req)

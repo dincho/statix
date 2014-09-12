@@ -15,7 +15,7 @@
 		5B83410C18D7821800BAF1D9 /* stx_request.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B83410B18D7821800BAF1D9 /* stx_request.c */; };
 		5B83411718D7A59400BAF1D9 /* stx_accept.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B83411618D7A59400BAF1D9 /* stx_accept.c */; };
 		5B83411918D7A95100BAF1D9 /* stx_log.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B83411818D7A95100BAF1D9 /* stx_log.c */; };
-		5B89554419ACBB23006E77C6 /* stx_event_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B89554319ACBB23006E77C6 /* stx_event_queue.c */; };
+		5B89554419ACBB23006E77C6 /* stx_event.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B89554319ACBB23006E77C6 /* stx_event.c */; };
 		5B97835F19059DED003893FC /* stx_read.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B97835E19059DED003893FC /* stx_read.c */; };
 		5B9D3B2D18C132BA00A88225 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B9D3B2C18C132BA00A88225 /* main.c */; };
 		5BA1DB9919B3C71B00E838BF /* stx_list.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BA1DB9819B3C71B00E838BF /* stx_list.c */; };
@@ -56,8 +56,8 @@
 		5B83411618D7A59400BAF1D9 /* stx_accept.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_accept.c; sourceTree = "<group>"; };
 		5B83411818D7A95100BAF1D9 /* stx_log.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_log.c; sourceTree = "<group>"; };
 		5B83411A18D7A96100BAF1D9 /* stx_log.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_log.h; sourceTree = "<group>"; };
-		5B89554219ACB9E0006E77C6 /* stx_event_queue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_event_queue.h; sourceTree = "<group>"; };
-		5B89554319ACBB23006E77C6 /* stx_event_queue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_event_queue.c; sourceTree = "<group>"; };
+		5B89554219ACB9E0006E77C6 /* stx_event.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_event.h; sourceTree = "<group>"; };
+		5B89554319ACBB23006E77C6 /* stx_event.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_event.c; sourceTree = "<group>"; };
 		5B97835E19059DED003893FC /* stx_read.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stx_read.c; sourceTree = "<group>"; };
 		5B97836019059DF7003893FC /* stx_read.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stx_read.h; sourceTree = "<group>"; };
 		5B9D3B2918C132BA00A88225 /* statix */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = statix; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -122,8 +122,8 @@
 				5BB8A4EC18D500FE00682D93 /* index.html */,
 				5BB5E1F51909B2840024C6ED /* 100b.html */,
 				5BF1667E190CE93F00DCF42C /* 10K.html */,
-				5B89554219ACB9E0006E77C6 /* stx_event_queue.h */,
-				5B89554319ACBB23006E77C6 /* stx_event_queue.c */,
+				5B89554219ACB9E0006E77C6 /* stx_event.h */,
+				5B89554319ACBB23006E77C6 /* stx_event.c */,
 				5B38A9E619B7974900107CE4 /* stx_master_worker.h */,
 				5B38A9E719B7975200107CE4 /* stx_master_worker.c */,
 				5BB3E9C819B1E9E10021C04C /* stx_worker.h */,
@@ -200,7 +200,7 @@
 				5B83410C18D7821800BAF1D9 /* stx_request.c in Sources */,
 				5B83411918D7A95100BAF1D9 /* stx_log.c in Sources */,
 				5BB5E1F41909A0230024C6ED /* stx_write.c in Sources */,
-				5B89554419ACBB23006E77C6 /* stx_event_queue.c in Sources */,
+				5B89554419ACBB23006E77C6 /* stx_event.c in Sources */,
 				5B4B90EB190ACB120015AF8F /* stx_server.c in Sources */,
 				5B97835F19059DED003893FC /* stx_read.c in Sources */,
 				5B83411718D7A59400BAF1D9 /* stx_accept.c in Sources */,

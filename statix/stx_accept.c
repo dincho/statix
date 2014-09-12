@@ -20,7 +20,7 @@
 #include "stx_request.h"
 #include "stx_read.h"
 #include "stx_log.h"
-#include "stx_event_queue.h"
+#include "stx_event.h"
 
 void stx_accept(stx_server_t *server, stx_worker_t *workers, const int nb_workers, int *idx)
 {

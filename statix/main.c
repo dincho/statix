@@ -19,7 +19,7 @@
 #include "stx_log.h"
 #include "stx_server.h"
 #include "stx_list.h"
-#include "stx_event_queue.h"
+#include "stx_event.h"
 #include "stx_master_worker.h"
 #include "stx_worker.h"
 #include "stx_accept.h"

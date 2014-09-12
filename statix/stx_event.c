@@ -1,5 +1,5 @@
 //
-//  stx_event_queue.c
+//  stx_event.c
 //  statix
 //
 //  Created by Dincho Todorov on 8/26/14.
@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <unistd.h> //close()
 
-#include "stx_event_queue.h"
+#include "stx_event.h"
 
 extern int stx_event_wait(int queue, stx_event_t *eventlist,
                           int nevents, const struct timespec *timeout);

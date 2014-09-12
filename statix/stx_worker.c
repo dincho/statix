@@ -11,7 +11,7 @@
 
 #include "config.h"
 #include "stx_worker.h"
-#include "stx_event_queue.h"
+#include "stx_event.h"
 #include "stx_accept.h"
 #include "stx_read.h"
 #include "stx_write.h"
