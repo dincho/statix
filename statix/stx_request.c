@@ -266,14 +266,14 @@ static inline long stx_request_parse_headers_line(stx_request_t *r,
                     *(p-1) = '\0';
                     state = st_hd_space_before_value;
                 } else {
-                    return -1;
+                    return 0;
                 }
 
                 break;
                 
             case st_hd_space_before_value:
                 if (ch != ' ') {
-                    return -1;
+                    return 0;
                 }
                 
                 *value = p;
@@ -298,7 +298,7 @@ static inline long stx_request_parse_headers_line(stx_request_t *r,
 
             case st_hd_crln:
                 if (ch != '\n') {
-                    return -1;
+                    return 0;
                 }
 
                 state = st_hd_done;
@@ -326,14 +326,14 @@ static inline int stx_request_parse_headers(stx_request_t *r)
     while (name < buffer_end) {
         ret = stx_request_parse_headers_line(r, name, &value);
         
-        if (ret == -1) {
-            return -1;
+        if (ret == 0) {
+            return 0;
         }
         
         if (name[0] == 'C' && name[1] == 'o' && value[0] == 'c') {
             r->close = 1;
             //currently only connection header is supported so don't go further
-            return 0;
+            return 1;
         }
 
         name += ret;
@@ -343,7 +343,7 @@ static inline int stx_request_parse_headers(stx_request_t *r)
         }
     }
     
-    return 0;
+    return 1;
 }
 
 static inline void stx_request_process_file(stx_request_t *r,
