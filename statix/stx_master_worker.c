@@ -46,8 +46,13 @@ void stx_master_worker(stx_server_t *server,
             ev = chlist[i];
             ident = STX_EV_IDENT(ev);
             
+            if (STX_EV_ERROR(ev)) {
+                stx_event_log_error(&ev, server->logger);
+                continue;
+            }
+            
             if (STX_EV_EOF(ev)) {
-                stx_log(server->logger, STX_LOG_ERR, "Event error: #%d", ident);
+                stx_log(server->logger, STX_LOG_ERR, "Event EOF during accept: #%d", ident);
                 continue;
             }
             

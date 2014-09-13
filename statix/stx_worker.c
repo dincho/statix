@@ -71,8 +71,7 @@ void *stx_worker(void *arguments)
             ident = STX_EV_IDENT(ev);
             
             if (STX_EV_ERROR(ev)) {
-                stx_log(arg->server->logger, STX_LOG_ERR,
-                        "Event error: #%d", ident);
+                stx_event_log_error(&ev, arg->server->logger);
                 continue;
             }
             

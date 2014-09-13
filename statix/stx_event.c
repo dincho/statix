@@ -11,12 +11,14 @@
 #include <unistd.h> //close()
 
 #include "stx_event.h"
+#include "stx_log.h"
 
 extern int stx_event_wait(int queue, stx_event_t *eventlist,
                           int nevents, const struct timespec *timeout);
 
 extern int stx_event_ctl(const int queue, stx_event_t *ev, const int op);
 
+extern void stx_event_log_error(stx_event_t *ev, stx_log_t *logger);
 
 #ifdef STX_EPOLL //Epoll
 

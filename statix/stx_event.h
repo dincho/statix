@@ -10,6 +10,7 @@
 #define statix_stx_event_h
 
 #include <time.h>
+#include "stx_log.h"
 
 struct timespec;
 
@@ -18,6 +19,7 @@ struct timespec;
     #define STX_EPOLL //use epoll
 
     #include <sys/epoll.h>
+    #include <sys/socket.h> //getsockopt
 
     typedef struct epoll_event stx_event_t;
 
@@ -42,6 +44,8 @@ struct timespec;
     } while(0)
 
 
+
+
     inline int stx_event_wait(int queue,
                               stx_event_t *eventlist,
                               int nevents,
@@ -53,6 +57,18 @@ struct timespec;
     inline int stx_event_ctl(const int queue, stx_event_t *ev, const int op)
     {
         return epoll_ctl(queue, op, ev->data.fd, ev);
+    }
+
+    inline void stx_event_log_error(stx_event_t *ev, stx_log_t *logger)
+    {
+        int error = 0;
+        int ident = STX_EV_IDENT((*ev));
+        socklen_t errlen = sizeof(error);
+        
+        if (getsockopt(ident, SOL_SOCKET, SO_ERROR, (void *)&error, &errlen) == 0) {
+            stx_log(logger, STX_LOG_ERR,
+                    "Event error (#%d): %s", ident, strerror(error));
+        }
     }
 
 #else //Kqueue
@@ -91,6 +107,12 @@ struct timespec;
     inline int stx_event_ctl(const int queue, stx_event_t *ev, const int op)
     {
         return kevent(queue, ev, 1, NULL, 0, NULL);
+    }
+
+    inline void stx_event_log_error(stx_event_t *ev, stx_log_t *logger)
+    {
+        stx_log(logger, STX_LOG_ERR,
+                "Event error (#%d): %s", STX_EV_IDENT((*ev)), ev->data);
     }
 
 #endif //end epoll/kqueue check
